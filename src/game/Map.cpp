@@ -43,6 +43,12 @@ Map::Map(int width, int height)
 void Map::init(bool withActors) {
 	rng = new TCODRandom(seed, TCOD_RNG_CMWC);
     tiles=new Tile[width*height];
+	// Give all tiles a variation to make them appear slightly different from each other
+	// (more visually appealing, no affect on gameplay)
+	for (int i = 0; i < width * height; i++) {
+		tiles[i].variation = rng->getInt(1, 32);
+	}
+	/////////////////////////////////////////////////////////////////////////////////////
     map=new TCODMap(width,height);
     TCODBsp bsp(0,0,width,height);
     bsp.splitRecursive(rng,8,ROOM_MAX_SIZE,ROOM_MAX_SIZE,1.5f,1.5f);
@@ -209,8 +215,8 @@ void Map::computeFov() {
 }
 
 void Map::render() const {
-    static const TCODColor wall(TCODColor::lightGrey);
-	static const TCODColor floor(TCODColor(0, 0, 10));
+    static const TCODColor wall(TCODColor(40, 30, 30));
+	static const TCODColor floor(TCODColor(5, 5, 10));
 	static const TCODColor lightFore(TCODColor::white);
 	static const TCODColor darkFore(TCODColor::black);
 
@@ -223,6 +229,9 @@ void Map::render() const {
 			case Tile::Type::FLOOR:	glyph = '.'; backColor = floor; foreColor = lightFore; break;
 			case Tile::Type::WALL:	glyph = '#'; backColor = wall; foreColor = darkFore; break;
 			}
+			// Adjust brightness based on variation
+			// variation is currently set to be 1 - 10, so this gives us variation / 10 + 1, 10 would be twice the brightness
+			backColor = backColor * (float)((tiles[x + y * width].variation / 10) + 1);
 	        if ( isInFov(x,y) ) {
 				TCODConsole::root->setChar(x, y, glyph);
 	            TCODConsole::root->setCharBackground(x,y,

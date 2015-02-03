@@ -162,3 +162,7 @@ void Engine::nextLevel() {
     map->init(true);
 	gameStatus=STARTUP;    
 }
+
+void Engine::previousLevel() {
+	level--;
+}

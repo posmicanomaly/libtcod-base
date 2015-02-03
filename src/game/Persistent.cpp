@@ -1,10 +1,12 @@
 #include "main.hpp"
-
+const char *path = "save/game.sav";
 void Map::load(TCODZip &zip) {
 	seed=zip.getInt();
     init(false);
 	for (int i=0; i < width*height; i++) {
 		tiles[i].explored=zip.getInt();
+		// Load the variation
+		tiles[i].variation = zip.getInt();
 		// Load the tile type
 		tiles[i].type = static_cast<Tile::Type>(zip.getInt());
 	}
@@ -14,6 +16,8 @@ void Map::save(TCODZip &zip) {
 	zip.putInt(seed);
 	for (int i=0; i < width*height; i++) {
 		zip.putInt(tiles[i].explored);
+		// Save the variation
+		zip.putInt(tiles[i].variation);
 		// Save the tile type;
 		zip.putInt(tiles[i].type);
 	}
@@ -249,8 +253,8 @@ void Engine::load(bool pause) {
 	TCODZip zip;
 	engine.gui->menu.clear();
 	engine.gui->menu.addItem(Menu::NEW_GAME,"New game");
-	if ( TCODSystem::fileExists("game.sav")) {
-		zip.loadFromFile("game.sav");
+	if ( TCODSystem::fileExists(path)) {
+		zip.loadFromFile(path);
 		int version = zip.getInt();
 		if ( version == SAVEGAME_VERSION ) {
 			engine.gui->menu.addItem(Menu::CONTINUE,"Continue");
@@ -301,7 +305,7 @@ void Engine::load(bool pause) {
 
 void Engine::save() {
 	if ( player->destructible->isDead() ) {
-		TCODSystem::deleteFile("game.sav");
+		TCODSystem::deleteFile(path);
 	} else {
 		TCODZip zip;
 		zip.putInt(SAVEGAME_VERSION);
@@ -323,6 +327,6 @@ void Engine::save() {
 		}
 		// finally the message log
 		gui->save(zip);
-		zip.saveToFile("game.sav");
+		zip.saveToFile(path);
 	}
 }

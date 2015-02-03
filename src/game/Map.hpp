@@ -1,5 +1,6 @@
 struct Tile {
     bool explored; // has the player already seen this tile ?
+	int variation;
 	enum Type {
 		FLOOR, WALL
 	} type;
