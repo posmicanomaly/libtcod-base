@@ -38,18 +38,26 @@ public :
 Map::Map(int width, int height) 
 	: width(width),height(height) {
 	seed=TCODRandom::getInstance()->getInt(0,0x7FFFFFFF);
+	stairs = new Actor(0, 0, '>', "stairs", TCODColor::white);
+	stairs->blocks = false;
+	stairs->fovOnly = false;
+	actors.push(stairs);
+	stairsUp = new Actor(0, 0, '<', "stairs", TCODColor::white);
+	stairs->blocks = false;
+	stairs->fovOnly = false;
+	actors.push(stairsUp);
 }
 
 void Map::init(bool withActors) {
 	rng = new TCODRandom(seed, TCOD_RNG_CMWC);
-    tiles=new Tile[width*height];
+    tiles = new Tile[width*height];
 	// Give all tiles a variation to make them appear slightly different from each other
 	// (more visually appealing, no affect on gameplay)
 	for (int i = 0; i < width * height; i++) {
 		tiles[i].variation = rng->getInt(1, 32);
 	}
 	/////////////////////////////////////////////////////////////////////////////////////
-    map=new TCODMap(width,height);
+    map = new TCODMap(width,height);
     TCODBsp bsp(0,0,width,height);
     bsp.splitRecursive(rng,8,ROOM_MAX_SIZE,ROOM_MAX_SIZE,1.5f,1.5f);
     BspListener listener(*this);
@@ -57,6 +65,9 @@ void Map::init(bool withActors) {
 }
 
 Map::~Map() {
+	// Added delete rng, memory leak
+	delete rng;
+	////////////////////////////////
     delete [] tiles;
     delete map;
 }
@@ -90,7 +101,7 @@ void Map::addMonster(int x, int y) {
         orc->destructible = new MonsterDestructible(10,0,"dead orc",35);
         orc->attacker = new Attacker(3);
         orc->ai = new MonsterAi();
-        engine.actors.push(orc);
+        actors.push(orc);
     } else {
         // create a troll
         Actor *troll = new Actor(x,y,'T',"troll",
@@ -98,7 +109,7 @@ void Map::addMonster(int x, int y) {
         troll->destructible = new MonsterDestructible(16,1,"troll carcass",100);
         troll->attacker = new Attacker(4);
         troll->ai = new MonsterAi();
-        engine.actors.push(troll);
+        actors.push(troll);
     }
 }
 
@@ -111,28 +122,28 @@ void Map::addItem(int x, int y) {
 			TCODColor::violet);
 		healthPotion->blocks=false;
 		healthPotion->pickable=new Healer(4);
-		engine.actors.push(healthPotion);
+		actors.push(healthPotion);
 	} else if ( dice < 70+10 ) {
 		// create a scroll of lightning bolt 
 		Actor *scrollOfLightningBolt=new Actor(x,y,'#',"scroll of lightning bolt",
 			TCODColor::lightYellow);
 		scrollOfLightningBolt->blocks=false;
 		scrollOfLightningBolt->pickable=new LightningBolt(5,20);
-		engine.actors.push(scrollOfLightningBolt);
+		actors.push(scrollOfLightningBolt);
 	} else if ( dice < 70+10+10 ) {
 		// create a scroll of fireball
 		Actor *scrollOfFireball=new Actor(x,y,'#',"scroll of fireball",
 			TCODColor::lightYellow);
 		scrollOfFireball->blocks=false;
 		scrollOfFireball->pickable=new Fireball(3,12);
-		engine.actors.push(scrollOfFireball);
+		actors.push(scrollOfFireball);
 	} else {
 		// create a scroll of confusion
 		Actor *scrollOfConfusion=new Actor(x,y,'#',"scroll of confusion",
 			TCODColor::lightYellow);
 		scrollOfConfusion->blocks=false;
 		scrollOfConfusion->pickable=new Confuser(10,8);
-		engine.actors.push(scrollOfConfusion);
+		actors.push(scrollOfConfusion);
 	}
 }
 
@@ -142,9 +153,14 @@ void Map::createRoom(bool first, int x1, int y1, int x2, int y2, bool withActors
     	return;
     }      
     if ( first ) {
-        // put the player in the first room
-        engine.player->x=(x1+x2)/2;
-        engine.player->y=(y1+y2)/2;
+		// We will insert the player manually
+        //// put the player in the first room
+        //engine.player->x=(x1+x2)/2;
+        //engine.player->y=(y1+y2)/2;
+		// Add stairs going up in first room
+		stairsUp->x = (x1 + x2) / 2;
+		stairsUp->y = (y1 + y2) / 2;
+		///////////////////////////////////////
     } else {
 		TCODRandom *rng=TCODRandom::getInstance();
 		// add monsters
@@ -168,8 +184,8 @@ void Map::createRoom(bool first, int x1, int y1, int x2, int y2, bool withActors
 		    nbItems--;
 		}
 		// set stairs position
-		engine.stairs->x=(x1+x2)/2;
-		engine.stairs->y=(y1+y2)/2;
+		stairs->x=(x1+x2)/2;
+		stairs->y=(y1+y2)/2;
     }
 }
 
@@ -183,8 +199,8 @@ bool Map::canWalk(int x, int y) const {
         // this is a wall
         return false;
     }
-    for (Actor **iterator=engine.actors.begin();
-        iterator!=engine.actors.end();iterator++) {
+    for (Actor **iterator=actors.begin();
+        iterator!=actors.end();iterator++) {
         Actor *actor=*iterator;
         if ( actor->blocks && actor->x == x && actor->y == y ) {
             // there is a blocking actor here. cannot walk
@@ -196,6 +212,12 @@ bool Map::canWalk(int x, int y) const {
  
 bool Map::isExplored(int x, int y) const {
     return tiles[x+y*width].explored;
+}
+
+void Map::setFullyExplored() {
+	for (int i = 0; i < width * height; i++) {
+		tiles[i].explored = true;
+	}
 }
 
 bool Map::isInFov(int x, int y) const {

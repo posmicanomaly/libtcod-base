@@ -97,7 +97,7 @@ void Gui::renderMouseLook() {
 	}
 	char buf[128]="";
 	bool first=true;
-	for (Actor **it=engine.actors.begin(); it != engine.actors.end(); it++) {
+	for (Actor **it=engine.map->actors.begin(); it != engine.map->actors.end(); it++) {
 		Actor *actor=*it;
 		// find actors under the mouse cursor
 		if (actor->x == engine.mouse.cx && actor->y == engine.mouse.cy ) {

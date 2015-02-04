@@ -9,9 +9,9 @@ public :
 	} gameStatus;
 	TCOD_key_t lastKey;
 	TCOD_mouse_t mouse;
-    TCODList<Actor *> actors;
+    
     Actor *player;
-    Actor *stairs;
+    
     Map *map;
     int fovRadius;
     int screenWidth;
@@ -27,6 +27,7 @@ public :
     Actor *getActor(int x, int y) const;
     Actor *getClosestMonster(int x, int y, float range) const;
     bool pickATile(int *x, int *y, float maxRange = 0.0f);
+	void setFullyExplored();
     void nextLevel();
 	void previousLevel();
    	void load(bool pause=false);

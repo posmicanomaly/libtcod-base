@@ -127,6 +127,7 @@ void PlayerAi::update(Actor *owner) {
 		case TCODK_KP3 : dx=dy=1; break;
 		case TCODK_KP5 : engine.gameStatus=Engine::NEW_TURN; break;
 		case TCODK_CHAR : handleActionKey(owner, engine.lastKey.c); break;
+		case TCODK_F1: engine.setFullyExplored(); break;
         default:break;
     }
     if (dx != 0 || dy != 0) {
@@ -140,8 +141,8 @@ void PlayerAi::update(Actor *owner) {
 bool PlayerAi::moveOrAttack(Actor *owner, int targetx,int targety) {
 	if ( engine.map->isWall(targetx,targety) ) return false;
 	// look for living actors to attack
-	for (Actor **iterator=engine.actors.begin();
-		iterator != engine.actors.end(); iterator++) {
+	for (Actor **iterator=engine.map->actors.begin();
+		iterator != engine.map->actors.end(); iterator++) {
 		Actor *actor=*iterator;
 		if ( actor->destructible && !actor->destructible->isDead()
 			 && actor->x == targetx && actor->y == targety ) {
@@ -150,8 +151,8 @@ bool PlayerAi::moveOrAttack(Actor *owner, int targetx,int targety) {
 		}
 	}
 	// look for corpses or items
-	for (Actor **iterator=engine.actors.begin();
-		iterator != engine.actors.end(); iterator++) {
+	for (Actor **iterator=engine.map->actors.begin();
+		iterator != engine.map->actors.end(); iterator++) {
 		Actor *actor=*iterator;
 		bool corpseOrItem=(actor->destructible && actor->destructible->isDead())
 			|| actor->pickable;
@@ -179,8 +180,8 @@ void PlayerAi::handleActionKey(Actor *owner, int ascii) {
 		case 'g' : // pickup item
 		{
 			bool found=false;
-			for (Actor **iterator=engine.actors.begin();
-				iterator != engine.actors.end(); iterator++) {
+			for (Actor **iterator=engine.map->actors.begin();
+				iterator != engine.map->actors.end(); iterator++) {
 				Actor *actor=*iterator;
 				if ( actor->pickable && actor->x == owner->x && actor->y == owner->y ) {
 					if (actor->pickable->pick(actor,owner)) {
@@ -210,12 +211,20 @@ void PlayerAi::handleActionKey(Actor *owner, int ascii) {
 		}
 		break;
 		case '>' :
-			if ( engine.stairs->x == owner->x && engine.stairs->y == owner->y ) {
+			if ( engine.map->stairs->x == owner->x && engine.map->stairs->y == owner->y ) {
 				engine.nextLevel();
 			} else {
 				engine.gui->message(TCODColor::lightGrey,"There are no stairs here.");
 			}
 		break;
+		case '<' :
+			if (engine.map->stairsUp->x == owner->x && engine.map->stairsUp->y == owner->y) {
+				engine.previousLevel();
+			}
+			else {
+				engine.gui->message(TCODColor::lightGrey, "There are no stairs here.");
+			}
+			break;
 	}
 }
 

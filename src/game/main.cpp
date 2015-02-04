@@ -1,3 +1,4 @@
+#include "vld.h"
 #include "main.hpp"
 const int SCREEN_WIDTH = 80;
 const int SCREEN_HEIGHT = 50;

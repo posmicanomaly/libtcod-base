@@ -1,3 +1,4 @@
+#include <iostream>
 #include "main.hpp"
 const char *path = "save/game.sav";
 void Map::load(TCODZip &zip) {
@@ -10,6 +11,14 @@ void Map::load(TCODZip &zip) {
 		// Load the tile type
 		tiles[i].type = static_cast<Tile::Type>(zip.getInt());
 	}
+	// the stairs
+	stairs = new Actor(0, 0, 0, NULL, TCODColor::white);
+	stairs->load(zip);
+	actors.push(stairs);
+
+	stairsUp = new Actor(0, 0, 0, NULL, TCODColor::white);
+	stairsUp->load(zip);
+	actors.push(stairsUp);
 }
 
 void Map::save(TCODZip &zip) {
@@ -21,6 +30,10 @@ void Map::save(TCODZip &zip) {
 		// Save the tile type;
 		zip.putInt(tiles[i].type);
 	}
+	// then the stairs
+	stairs->save(zip);
+	stairsUp->save(zip);
+
 }
 
 void Actor::load(TCODZip &zip) {
@@ -234,6 +247,7 @@ void Gui::load(TCODZip &zip) {
 	int nbMessages=zip.getInt();
 	while (nbMessages > 0) {
 		const char *text=zip.getString();
+		std::cout << "Load: Gui: Text: " << text << std::endl;
 		TCODColor col=zip.getColor();
 		message(col,text);
 		nbMessages--;
@@ -243,6 +257,7 @@ void Gui::load(TCODZip &zip) {
 void Gui::save(TCODZip &zip) {
 	zip.putInt(log.size());
 	for (Message **it=log.begin(); it != log.end(); it++) {
+		std::cout << "Save: Gui: Text: " << (*it)->text << std::endl;
 		zip.putString((*it)->text);
 		zip.putColor(&(*it)->col);
 	}
@@ -282,18 +297,15 @@ void Engine::load(bool pause) {
 		map->load(zip);
 		// then the player
 		player=new Actor(0,0,0,NULL,TCODColor::white);
-		actors.push(player);
+		engine.map->actors.push(player);
 		player->load(zip);
-		// the stairs
-		stairs=new Actor(0,0,0,NULL,TCODColor::white);
-		stairs->load(zip);
-		actors.push(stairs);			
+				
 		// then all other actors
 		int nbActors=zip.getInt();
 		while ( nbActors > 0 ) {
 			Actor *actor = new Actor(0,0,0,NULL,TCODColor::white);
 			actor->load(zip);
-			actors.push(actor);
+			engine.map->actors.push(actor);
 			nbActors--;
 		}
 		// finally the message log
@@ -316,12 +328,14 @@ void Engine::save() {
 		map->save(zip);
 		// then the player
 		player->save(zip);
-		// then the stairs
-		stairs->save(zip);
-		// then all the other actors
-		zip.putInt(actors.size()-2);
-		for (Actor **it=actors.begin(); it!=actors.end(); it++) {
-			if ( *it != player && *it != stairs ) {
+		
+		// then all the other actors, minus unique things like player, and the stairs
+		// POTENTIAL BUG:
+		// Originally this was -2, to account for not including the player, or the stairs
+		// However, another stairs was added, and then the stairs were included, so we need this at -3
+		zip.putInt(map->actors.size()-3);
+		for (Actor **it=map->actors.begin(); it!=map->actors.end(); it++) {
+			if ( *it != player && *it != map->stairs && *it != map->stairsUp) {
 				(*it)->save(zip);
 			}
 		}

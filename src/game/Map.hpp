@@ -19,6 +19,11 @@ public :
     bool canWalk(int x, int y) const;
     void computeFov();
     void render() const;
+	TCODList<Actor *> actors;
+	Actor *stairs;
+	Actor *stairsUp;
+
+	void setFullyExplored();
 
 	void load(TCODZip &zip);
 	void save(TCODZip &zip);
