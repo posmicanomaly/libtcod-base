@@ -31,7 +31,11 @@ public :
     void nextLevel();
 	void previousLevel();
    	void load(bool pause=false);
+	bool mapExists(int level);
+	void clearMapFiles();
+	
 	void save();
+	
     void init();
     void term();
 };

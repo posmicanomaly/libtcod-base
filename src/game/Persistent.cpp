@@ -2,6 +2,18 @@
 #include "main.hpp"
 const char *path = "save/game.sav";
 void Map::load(TCODZip &zip) {
+	std::cout << "map::load(tcodzip &zip) deprecated" << std::endl;
+}
+
+void Map::save(TCODZip &zip) {
+	std::cout << "map::save(tcodzip &zip) deprecated" << std::endl;
+}
+void Map::load(int level) {
+	TCODZip zip;
+	char fileName[16];
+	sprintf_s(fileName, "%s.%d", "save/map", level);
+	zip.loadFromFile(fileName);
+	
 	seed=zip.getInt();
     init(false);
 	for (int i=0; i < width*height; i++) {
@@ -19,9 +31,26 @@ void Map::load(TCODZip &zip) {
 	stairsUp = new Actor(0, 0, 0, NULL, TCODColor::white);
 	stairsUp->load(zip);
 	actors.push(stairsUp);
+
+	// then all other actors
+	int nbActors = zip.getInt();
+	while (nbActors > 0) {
+		Actor *actor = new Actor(0, 0, 0, NULL, TCODColor::white);
+		actor->load(zip);
+		actors.push(actor);
+		nbActors--;
+	}
 }
 
-void Map::save(TCODZip &zip) {
+void Map::save() {
+	char fileName[16];
+	sprintf_s(fileName, "%s.%d", "save/map", engine.level);
+	if (engine.mapExists(engine.level)) {
+		TCODSystem::deleteFile(fileName);
+	}
+	std::cout << "Map::save()" << std::endl;
+	TCODZip zip;
+	
 	zip.putInt(seed);
 	for (int i=0; i < width*height; i++) {
 		zip.putInt(tiles[i].explored);
@@ -34,6 +63,18 @@ void Map::save(TCODZip &zip) {
 	stairs->save(zip);
 	stairsUp->save(zip);
 
+	// then all the other actors, minus unique things like player, and the stairs
+	// POTENTIAL BUG:
+	// Originally this was -2, to account for not including the player, or the stairs
+	// However, another stairs was added, and then the stairs were included, so we need this at -3
+	zip.putInt(actors.size() - 3);
+	for (Actor **it = actors.begin(); it != actors.end(); it++) {
+		if (*it != engine.player && *it != stairs && *it != stairsUp) {
+			(*it)->save(zip);
+		}
+	}
+	
+	zip.saveToFile(fileName);
 }
 
 void Actor::load(TCODZip &zip) {
@@ -286,6 +327,7 @@ void Engine::load(bool pause) {
 		// New game
 		engine.term();
 		engine.init();
+		clearMapFiles();
 	} else {
 		// continue a saved game
 		engine.term();
@@ -294,20 +336,15 @@ void Engine::load(bool pause) {
 		int width=zip.getInt();
 		int height=zip.getInt();
 		map = new Map(width,height);
-		map->load(zip);
+		//TCODZip mapZip;
+		//mapZip.loadFromFile("save/map." + level);
+		map->load(level);
 		// then the player
 		player=new Actor(0,0,0,NULL,TCODColor::white);
 		engine.map->actors.push(player);
 		player->load(zip);
 				
-		// then all other actors
-		int nbActors=zip.getInt();
-		while ( nbActors > 0 ) {
-			Actor *actor = new Actor(0,0,0,NULL,TCODColor::white);
-			actor->load(zip);
-			engine.map->actors.push(actor);
-			nbActors--;
-		}
+		
 		// finally the message log
 		gui->load(zip);
 		// to force FOV recomputation
@@ -318,6 +355,7 @@ void Engine::load(bool pause) {
 void Engine::save() {
 	if ( player->destructible->isDead() ) {
 		TCODSystem::deleteFile(path);
+		clearMapFiles();
 	} else {
 		TCODZip zip;
 		zip.putInt(SAVEGAME_VERSION);
@@ -325,22 +363,16 @@ void Engine::save() {
 		// save the map first
 		zip.putInt(map->width);
 		zip.putInt(map->height);
-		map->save(zip);
+		// Map->save now saves its own actors
+		map->save();
 		// then the player
 		player->save(zip);
 		
-		// then all the other actors, minus unique things like player, and the stairs
-		// POTENTIAL BUG:
-		// Originally this was -2, to account for not including the player, or the stairs
-		// However, another stairs was added, and then the stairs were included, so we need this at -3
-		zip.putInt(map->actors.size()-3);
-		for (Actor **it=map->actors.begin(); it!=map->actors.end(); it++) {
-			if ( *it != player && *it != map->stairs && *it != map->stairsUp) {
-				(*it)->save(zip);
-			}
-		}
+		
 		// finally the message log
 		gui->save(zip);
 		zip.saveToFile(path);
 	}
 }
+
+

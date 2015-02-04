@@ -1,4 +1,5 @@
 #include <math.h>
+#include <stdio.h>
 #include "main.hpp"
 
 Engine::Engine(int screenWidth, int screenHeight) : gameStatus(STARTUP),
@@ -13,7 +14,9 @@ Engine::Engine(int screenWidth, int screenHeight) : gameStatus(STARTUP),
     gui = new Gui();
 }
 
-void Engine::init() {    
+void Engine::init() {  
+	// Reset level here?
+	level = 1;
     map = new Map(80,43);
     map->init(true);
 
@@ -150,11 +153,24 @@ void Engine::setFullyExplored() {
 	map->setFullyExplored();
 }
 
+void Engine::clearMapFiles() {
+	int maxLevel = 1;
+	while (mapExists(maxLevel)) {
+		char fileName[16];
+		sprintf_s(fileName, "%s.%d", "save/map", engine.level);
+		TCODSystem::deleteFile(fileName);
+		maxLevel++;
+	}
+}
+
 void Engine::nextLevel() {
+	map->save();
 	level++;
 	gui->message(TCODColor::lightViolet,"You take a moment to rest, and recover your strength.");
 	player->destructible->heal(player->destructible->maxHp/2);
 	gui->message(TCODColor::red,"After a rare moment of peace, you descend\ndeeper into the heart of the dungeon...");
+
+	
 	// TODO: don't delete previous map, save it so we can go back to it
 	// delete all actors but player and stairs
 	for (Actor **it = map->actors.begin(); it != map->actors.end(); it++) {
@@ -167,7 +183,14 @@ void Engine::nextLevel() {
     
     // create a new map
     map = new Map(80,43);
-    map->init(true);
+	
+	if (mapExists(level)) {
+		map->load(level);
+	}
+	else {
+		map->init(true);
+	}
+	
 	gameStatus=STARTUP;   
 
 	// move player to the up stairs, which lead to the previous level
@@ -175,7 +198,14 @@ void Engine::nextLevel() {
 	player->y = map->stairsUp->y;
 }
 
+bool Engine::mapExists(int level) {
+	char fileName[16];
+	sprintf_s(fileName, "%s.%d", "save/map", level);
+	return TCODSystem::fileExists(fileName);
+}
+
 void Engine::previousLevel() {
+	map->save();
 	if (level <= 1) {
 		gui->message(TCODColor::red, "Ascension not available yet!");
 		return;
@@ -189,22 +219,14 @@ void Engine::previousLevel() {
 			it = map->actors.remove(it);
 		}
 	}
-	delete map;
+	//delete map;
 	
 
 	map = new Map(80, 43);
-	map->init(true);
+	//map->init(false);
+	map->load(level);
 	gameStatus = STARTUP;
 	// Player is put on the up stairs by the map, since we're going backwards, we want to put them on the down stair of the previous level
 	player->x = map->stairs->x;
 	player->y = map->stairs->y;
-	//// Swap the stairs
-	//gui->message(TCODColor::violet, "prev, stairs %d %d, stairsUp %d %d", map->stairs->x, map->stairs->y, map->stairsUp->x, map->stairsUp->y);
-	//int tmpx = map->stairs->x;
-	//int tmpy = map->stairs->y;
-	//map->stairs->x = map->stairsUp->x;
-	//map->stairs->y = map->stairsUp->y;
-	//map->stairsUp->x = tmpx;
-	//map->stairsUp->y = tmpy;
-	//gui-> message(TCODColor::violet, "swap, stairs %d %d, stairsUp %d %d", map->stairs->x, map->stairs->y, map->stairsUp->x, map->stairsUp->y);
 }

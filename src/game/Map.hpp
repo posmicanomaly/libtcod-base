@@ -25,8 +25,12 @@ public :
 
 	void setFullyExplored();
 
+	void load(int level);
+	//not used
 	void load(TCODZip &zip);
 	void save(TCODZip &zip);
+	////////////////////////
+	void save();
  	void init(bool withActors);
 protected :
     Tile *tiles;
