@@ -2,7 +2,14 @@
 #include "main.hpp"
 
 Destructible::Destructible(float maxHp, float defense, const char *corpseName, int xp) :
-	maxHp(maxHp),hp(maxHp),defense(defense),corpseName(corpseName),xp(xp) {
+	maxHp(maxHp),hp(maxHp),defense(defense),xp(xp) {
+	//std::cout << " Destructible() name: " << (corpseName == NULL ? "null" : corpseName) << std::endl;
+	this->corpseName = _strdup(corpseName);
+}
+
+Destructible::~Destructible() {
+	//std::cout << " ~Destructible()" << std::endl;
+	free((char *)corpseName);
 }
 
 float Destructible::takeDamage(Actor *owner, float damage) {

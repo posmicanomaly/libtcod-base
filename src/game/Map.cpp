@@ -37,6 +37,7 @@ public :
 
 Map::Map(int width, int height) 
 	: width(width),height(height) {
+	std::cout << "Map()" << std::endl;
 	seed=TCODRandom::getInstance()->getInt(0,0x7FFFFFFF);
 	stairs = new Actor(0, 0, '>', "stairs", TCODColor::white);
 	stairs->blocks = false;
@@ -65,6 +66,7 @@ void Map::init(bool withActors) {
 }
 
 Map::~Map() {
+	std::cout << " ~Map()" << std::endl;
 	// Added delete rng, memory leak
 	delete rng;
 	////////////////////////////////

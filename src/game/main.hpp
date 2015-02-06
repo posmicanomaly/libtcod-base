@@ -1,3 +1,4 @@
+#include <iostream>
 #include "..\libtcod\libtcod.hpp"
 class Actor;
 #include "Persistent.hpp"

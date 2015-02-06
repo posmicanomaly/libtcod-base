@@ -9,7 +9,7 @@ Engine::Engine(int screenWidth, int screenHeight) : gameStatus(STARTUP),
     TCODConsole::initRoot(screenWidth,screenHeight,"libtcod C++ tutorial",false);
 	// Have to put a dummy map here so when term is called it doesn't crash when trying to access map->actors
 	// It will get deleted anyway in term, and we'll get a new one.
-	map = new Map(80, 43);
+	//map = new Map(80, 43);
 	/////////////////////////////////////////////////////////////////////////////////////////////////////////
     gui = new Gui();
 }
@@ -38,8 +38,10 @@ Engine::~Engine() {
 }
 
 void Engine::term() {
-    map->actors.clearAndDelete();
-    if ( map ) delete map;
+	if (map) {
+		map->actors.clearAndDelete();
+		if (map) delete map;
+	}
     gui->clear();
 }
 

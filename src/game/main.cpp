@@ -13,5 +13,7 @@ int main() {
 		TCODConsole::flush();    
     }
     engine.save();
+	int x;
+	std::cin >> x;
     return 0;
 }

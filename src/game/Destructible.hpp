@@ -7,6 +7,7 @@ public :
 	int xp; // XP gained when killing this monster (or player xp)
 
 	Destructible(float maxHp, float defense, const char *corpseName, int xp);
+	~Destructible();
 	inline bool isDead() { return hp <= 0; }
 	float takeDamage(Actor *owner, float damage);
 	float heal(float amount);
