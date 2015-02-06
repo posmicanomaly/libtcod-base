@@ -17,7 +17,12 @@ Actor::~Actor() {
 		//std::cout << " NULL ~Actor()" << std::endl;
 	}
 	if (attacker) delete attacker;
-	if (destructible) delete destructible;
+	if (destructible) {
+		if (destructible->corpseName != this->name) {
+			free((char *)destructible->corpseName);
+		}
+		delete destructible;
+	}
 	if (ai) delete ai;
 	if (pickable) delete pickable;
 	if (container) delete container;

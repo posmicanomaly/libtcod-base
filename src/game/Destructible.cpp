@@ -9,7 +9,8 @@ Destructible::Destructible(float maxHp, float defense, const char *corpseName, i
 
 Destructible::~Destructible() {
 	//std::cout << " ~Destructible()" << std::endl;
-	free((char *)corpseName);
+	//free((char *)corpseName);
+	
 }
 
 float Destructible::takeDamage(Actor *owner, float damage) {
@@ -38,6 +39,7 @@ void Destructible::die(Actor *owner) {
 	// transform the actor into a corpse!
 	owner->ch='%';
 	owner->col=TCODColor::darkRed;	
+	free((char *)owner->name);
 	owner->name=corpseName;
 	owner->blocks=false;
 	// make sure corpses are drawn before living actors
