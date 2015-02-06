@@ -325,9 +325,10 @@ void Engine::load(bool pause) {
 		exit(0);
 	} else if ( menuItem == Menu::NEW_GAME ) {
 		// New game
+		clearMapFiles();
 		engine.term();
 		engine.init();
-		clearMapFiles();
+		
 	} else {
 		// continue a saved game
 		engine.term();

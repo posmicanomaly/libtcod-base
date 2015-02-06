@@ -18,6 +18,11 @@ Actor::~Actor() {
 	}
 	if (attacker) delete attacker;
 	if (destructible) {
+		// If the corpse name is not equal to this actor's name
+		// Then that means this actor isn't dead, and the destructible corpse name
+		// has never been assigned to this actor, so we need to free the pointer to prevent
+		// a leak.
+		// Doing this here instead of destructor so I can compare names
 		if (destructible->corpseName != this->name) {
 			free((char *)destructible->corpseName);
 		}
@@ -26,6 +31,8 @@ Actor::~Actor() {
 	if (ai) delete ai;
 	if (pickable) delete pickable;
 	if (container) delete container;
+	// This should always be a valid free, for instance if destructible calls die, in the
+	// die function the old name is now freed.
 	free((char *)name);
 }
 

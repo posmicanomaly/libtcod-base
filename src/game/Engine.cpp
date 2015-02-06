@@ -20,6 +20,9 @@ void Engine::init() {
     map = new Map(80,43);
     map->init(true);
 
+	// Does the player alraedy point to something?
+	// These are leaking
+
 	player = new Actor(map->stairsUp->x, map->stairsUp->y, '@', "player", TCODColor::white);
 	player->destructible = new PlayerDestructible(30, 2, "your cadaver");
 	player->attacker = new Attacker(5);
@@ -41,7 +44,7 @@ void Engine::term() {
 	if (map) {
 		map->actors.clearAndDelete();
 		if (map) delete map;
-	}
+	}	
     gui->clear();
 }
 
@@ -159,43 +162,68 @@ void Engine::clearMapFiles() {
 	int maxLevel = 1;
 	while (mapExists(maxLevel)) {
 		char fileName[16];
-		sprintf_s(fileName, "%s.%d", "save/map", engine.level);
+		sprintf_s(fileName, "%s.%d", "save/map", maxLevel);
 		TCODSystem::deleteFile(fileName);
 		maxLevel++;
 	}
 }
 
 void Engine::nextLevel() {
-	map->save();
-	level++;
-	gui->message(TCODColor::lightViolet,"You take a moment to rest, and recover your strength.");
-	player->destructible->heal(player->destructible->maxHp/2);
-	gui->message(TCODColor::red,"After a rare moment of peace, you descend\ndeeper into the heart of the dungeon...");
-
-	
-	// TODO: don't delete previous map, save it so we can go back to it
-	// delete all actors but player and stairs
+	//map->save();
+	save();
+	// Delete the actors on this map ?
 	for (Actor **it = map->actors.begin(); it != map->actors.end(); it++) {
 		if (*it != player) {
 			delete *it;
 			it = map->actors.remove(it);
 		}
 	}
-    delete map;
-    
-    // create a new map
-    map = new Map(80,43);
-	
-	if (mapExists(level)) {
-		map->load(level);
-	}
-	else {
+	delete map;
+	/* What we need to do:
+	1) increment the level
+	2) check if we need to make a new level
+	3) save game
+	4) load game
+	*/
+	level++;
+	if (!mapExists(level)) {
+		map = new Map(80, 43);
 		map->init(true);
 	}
-	
-	gameStatus=STARTUP;   
+	save();
+	// delete player?
+	//delete player;
+	load(true);
+	/*map->save();
+	level++;*/
+	gui->message(TCODColor::lightViolet,"You take a moment to rest, and recover your strength.");
+	player->destructible->heal(player->destructible->maxHp/2);
+	gui->message(TCODColor::red,"After a rare moment of peace, you descend\ndeeper into the heart of the dungeon...");
 
-	// move player to the up stairs, which lead to the previous level
+	//
+	//// TODO: don't delete previous map, save it so we can go back to it
+	//// delete all actors but player and stairs
+	//for (Actor **it = map->actors.begin(); it != map->actors.end(); it++) {
+	//	if (*it != player) {
+	//		delete *it;
+	//		it = map->actors.remove(it);
+	//	}
+	//}
+ //   delete map;
+ //   
+ //   // create a new map
+ //   map = new Map(80,43);
+	//
+	//if (mapExists(level)) {
+	//	map->load(level);
+	//}
+	//else {
+	//	map->init(true);
+	//}
+	//
+	//gameStatus=STARTUP;   
+
+	//// move player to the up stairs, which lead to the previous level
 	player->x = map->stairsUp->x;
 	player->y = map->stairsUp->y;
 }

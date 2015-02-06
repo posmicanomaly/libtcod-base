@@ -39,7 +39,10 @@ void Destructible::die(Actor *owner) {
 	// transform the actor into a corpse!
 	owner->ch='%';
 	owner->col=TCODColor::darkRed;	
+	// The original name is longer needed, this destructible will assign the actor
+	// a new name. So we have to free the old name or we'll leak it.
 	free((char *)owner->name);
+	//////////////////////////////////////////////////////////////////////////////
 	owner->name=corpseName;
 	owner->blocks=false;
 	// make sure corpses are drawn before living actors
