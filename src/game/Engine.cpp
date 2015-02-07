@@ -241,48 +241,6 @@ void Engine::changeLevel(signed int direction) {
 		player->y = map->stairs->y;
 	}	
 }
-void Engine::nextLevel() {
-	std::cout << "Engine::nextLevel()" << std::endl;
-	// First save the current game, because we're using the engine load function, which will unload everything
-	save();
-	// Delete all the actors except the player
-	for (Actor **it = map->actors.begin(); it != map->actors.end(); it++) {
-		if (*it != player) {
-			delete *it;
-			it = map->actors.remove(it);
-		}
-	}
-	// Delete the map, this should remove the actors list,
-	// but our player will still be accessible through engine->player
-	delete map;
-	
-	// Increment the level
-	level++;
-	// Check if we already have this map, then we have already created 
-	// the map and it should be saved. If not, we have to make the next level
-	if (!mapExists(level)) {
-		map = new Map(80, 43);
-		map->init(true);
-		// Add the player to the next level, because when Engine::term() is called, 
-		// that is where player is deleted, thus preventing our memory leak when player 
-		// is reloaded.
-		map->actors.push(player);
-	}
-	// Save the current state of the game again
-	save();
-	
-	// Load the game
-	load(true);
-	
-	gui->message(TCODColor::lightViolet,"You take a moment to rest, and recover your strength.");
-	player->destructible->heal(player->destructible->maxHp/2);
-	gui->message(TCODColor::red,"After a rare moment of peace, you descend\ndeeper into the heart of the dungeon...");
-
-	
-	// move player to the up stairs, which lead to the previous level
-	player->x = map->stairsUp->x;
-	player->y = map->stairsUp->y;
-}
 
 bool Engine::mapExists(int level) {
 	char fileName[16];
@@ -290,32 +248,3 @@ bool Engine::mapExists(int level) {
 	return TCODSystem::fileExists(fileName);
 }
 
-void Engine::previousLevel() {
-	save();
-	if (level <= 1) {
-		gui->message(TCODColor::red, "Ascension not available yet!");
-		return;
-	}
-
-	for (Actor **it = map->actors.begin(); it != map->actors.end(); it++) {
-		if (*it != player) {
-			delete *it;
-			it = map->actors.remove(it);
-		}
-	}
-	delete map;
-
-	level--;
-
-	gui->message(TCODColor::red, "You ascend the stairs");
-	map = new Map(80, 43);
-	//map->init(false);
-	map->load(level);
-	map->actors.push(player);
-	save();
-	load(true);
-	//gameStatus = STARTUP;
-	// Player is put on the up stairs by the map, since we're going backwards, we want to put them on the down stair of the previous level
-	player->x = map->stairs->x;
-	player->y = map->stairs->y;
-}
