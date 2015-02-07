@@ -170,7 +170,65 @@ void Engine::clearMapFiles() {
 		maxLevel++;
 	}
 }
+void Engine::changeLevel(signed int direction) {
+	// Let's support only -1 and +1 at this point
+	if (direction < -1) {
+		std::cout << "Engine::changeLevel() direction too low. Use -1 or 1" << std::endl;
+		return;
+	}
+	else if (direction > 1) {
+		std::cout << "Engine::changeLevel() direction too high, use -1, or 1" << std::endl;
+		return;
+	}
+	else if (direction == 0) {
+		std::cout << "Engine::changeLevel() direction is zero, use -1 or 1" << std::endl;
+		return;
+	}
 
+	// Do some bounds checking
+	if (level + direction < 1) {
+		std::cout << "At the highest level already" << std::endl;
+	}
+
+	// First save the current game, because we're using the engine load fnction,
+	// which will unload everything.
+	save();
+	// Delete all the actors except the player
+	for (Actor ** it = map->actors.begin(); it != map->actors.end(); it++) {
+		if (*it != player) {
+			delete *it;
+			it = map->actors.remove(it);
+		}
+	}
+	// Delete the map, this should remove the actors list,
+	// but our player will still be accessible through engine->player
+	delete map;
+
+	// Increment/Decrement level based on direction
+	level += direction;
+
+	map = new Map(80, 43);
+	if (!mapExists(level)) {
+		map->init(true);
+	}
+	else {
+		map->load(level);
+	}
+	map->actors.push(player);
+	save();
+	load(true);
+	if (direction > 0) {
+		// move player to the up stairs, which lead to the previous level
+		player->x = map->stairsUp->x;
+		player->y = map->stairsUp->y;
+	}
+	else {
+		// Player on the down stair of the previous level
+		player->x = map->stairs->x;
+		player->y = map->stairs->y;
+	}
+	
+}
 void Engine::nextLevel() {
 	std::cout << "Engine::nextLevel()" << std::endl;
 	// First save the current game, because we're using the engine load function, which will unload everything

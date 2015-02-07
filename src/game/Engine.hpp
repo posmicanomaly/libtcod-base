@@ -28,6 +28,7 @@ public :
     Actor *getClosestMonster(int x, int y, float range) const;
     bool pickATile(int *x, int *y, float maxRange = 0.0f);
 	void setFullyExplored();
+	void changeLevel(signed int direction);
     void nextLevel();
 	void previousLevel();
    	void load(bool pause=false);
