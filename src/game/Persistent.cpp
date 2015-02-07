@@ -334,27 +334,39 @@ void Engine::load(bool pause) {
 		
 	} else {
 		std::cout << "\tMenu::CONTINUE" << std::endl;
-		// continue a saved game
-		engine.term();
-		// load the map
-		level=zip.getInt();
-		int width=zip.getInt();
-		int height=zip.getInt();
-		map = new Map(width,height);
-		//TCODZip mapZip;
-		//mapZip.loadFromFile("save/map." + level);
-		map->load(level);
-		// then the player
-		player=new Actor(0,0,0,NULL,TCODColor::white);
-		engine.map->actors.push(player);
-		player->load(zip);
-				
-		
-		// finally the message log
-		gui->load(zip);
-		// to force FOV recomputation
-		gameStatus=STARTUP;
+		loadContinueHelper();
 	}	
+}
+
+void Engine::loadContinueHelper() {
+	TCODZip zip;
+	if (TCODSystem::fileExists(path)) {
+		zip.loadFromFile(path);
+		int version = zip.getInt();
+		if (version != SAVEGAME_VERSION) {
+			std::cout << "Engine::loadContinueHelper() SAVEGAME_VERSION mismatch" << std::endl;
+		}
+	}
+	// continue a saved game
+	engine.term();
+	// load the map
+	level = zip.getInt();
+	int width = zip.getInt();
+	int height = zip.getInt();
+	map = new Map(width, height);
+	//TCODZip mapZip;
+	//mapZip.loadFromFile("save/map." + level);
+	map->load(level);
+	// then the player
+	player = new Actor(0, 0, 0, NULL, TCODColor::white);
+	engine.map->actors.push(player);
+	player->load(zip);
+
+
+	// finally the message log
+	gui->load(zip);
+	// to force FOV recomputation
+	gameStatus = STARTUP;
 }
 
 void Engine::save() {

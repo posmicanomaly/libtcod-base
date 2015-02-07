@@ -207,16 +207,28 @@ void Engine::changeLevel(signed int direction) {
 	// Increment/Decrement level based on direction
 	level += direction;
 
+	// Create a new map
 	map = new Map(80, 43);
+	// If the map doesn't exist at the next level, create a new one
 	if (!mapExists(level)) {
 		map->init(true);
 	}
+	// Otherwise load the map from file
 	else {
 		map->load(level);
 	}
+	// Add the player, so it can be deleted and not leak memory
 	map->actors.push(player);
+	// Save again, because we'll have to load
 	save();
-	load(true);
+	// Finally load the engine again
+	// UPDATE: We can use Engine::loadContinueHelper() instead, it will do what continue does
+	// just minus the menu.
+	//load(true);
+	loadContinueHelper();
+	// Determine which stairs to place the player on
+	// - Going down, place on up stairs
+	// - Going up, place on down stairs
 	if (direction > 0) {
 		// move player to the up stairs, which lead to the previous level
 		player->x = map->stairsUp->x;
@@ -226,8 +238,7 @@ void Engine::changeLevel(signed int direction) {
 		// Player on the down stair of the previous level
 		player->x = map->stairs->x;
 		player->y = map->stairs->y;
-	}
-	
+	}	
 }
 void Engine::nextLevel() {
 	std::cout << "Engine::nextLevel()" << std::endl;

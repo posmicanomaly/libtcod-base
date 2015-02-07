@@ -29,9 +29,12 @@ public :
     bool pickATile(int *x, int *y, float maxRange = 0.0f);
 	void setFullyExplored();
 	void changeLevel(signed int direction);
+	// deprecated
     void nextLevel();
 	void previousLevel();
+	//////////////////////
    	void load(bool pause=false);
+	void loadContinueHelper();
 	bool mapExists(int level);
 	void clearMapFiles();
 	
