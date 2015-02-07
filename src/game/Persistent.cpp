@@ -388,6 +388,7 @@ void Engine::save() {
 		
 		
 		// finally the message log
+		// TODO: Check and create directory if needed
 		gui->save(zip);
 		zip.saveToFile(path);
 	}

@@ -39,13 +39,15 @@ Map::Map(int width, int height)
 	: width(width),height(height) {
 	std::cout << "Map()" << std::endl;
 	seed=TCODRandom::getInstance()->getInt(0,0x7FFFFFFF);
+	// Down stairs
 	stairs = new Actor(0, 0, '>', "stairs", TCODColor::white);
 	stairs->blocks = false;
 	stairs->fovOnly = false;
 	actors.push(stairs);
+	// Up stairs
 	stairsUp = new Actor(0, 0, '<', "stairs", TCODColor::white);
-	stairs->blocks = false;
-	stairs->fovOnly = false;
+	stairsUp->blocks = false;
+	stairsUp->fovOnly = false;
 	actors.push(stairsUp);
 }
 

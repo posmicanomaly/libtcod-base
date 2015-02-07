@@ -188,6 +188,7 @@ void Engine::changeLevel(signed int direction) {
 	// Do some bounds checking
 	if (level + direction < 1) {
 		std::cout << "At the highest level already" << std::endl;
+		return;
 	}
 
 	// First save the current game, because we're using the engine load fnction,
