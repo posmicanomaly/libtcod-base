@@ -306,6 +306,7 @@ void Gui::save(TCODZip &zip) {
 
 const int SAVEGAME_VERSION=0x1100;
 void Engine::load(bool pause) {
+	std::cout << "Engine::load()" << std::endl;
 	TCODZip zip;
 	engine.gui->menu.clear();
 	engine.gui->menu.addItem(Menu::NEW_GAME,"New game");
@@ -321,15 +322,18 @@ void Engine::load(bool pause) {
 	Menu::MenuItemCode menuItem=engine.gui->menu.pick(
 		pause ? Menu::PAUSE : Menu::MAIN);
 	if ( menuItem == Menu::EXIT || menuItem == Menu::NONE ) {
+		std::cout << "\tMenu::EXIT" << std::endl;
 		// Exit or window closed
 		exit(0);
 	} else if ( menuItem == Menu::NEW_GAME ) {
 		// New game
+		std::cout << "\tMenu::NEW_GAME" << std::endl;
 		clearMapFiles();
 		engine.term();
 		engine.init();
 		
 	} else {
+		std::cout << "\tMenu::CONTINUE" << std::endl;
 		// continue a saved game
 		engine.term();
 		// load the map
@@ -354,6 +358,7 @@ void Engine::load(bool pause) {
 }
 
 void Engine::save() {
+	std::cout << "Engine::save()" << std::endl;
 	if ( player->destructible->isDead() ) {
 		TCODSystem::deleteFile(path);
 		clearMapFiles();

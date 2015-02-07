@@ -10,6 +10,9 @@ Actor::Actor(int x, int y, int ch, const char *name,
 }
 
 Actor::~Actor() {
+	if (this == engine.player) {
+		std::cout << "Deleting player" << std::endl;
+	}
 	if (name != NULL) {
 		//std::cout << name << " ~Actor()" << std::endl;
 	}
