@@ -21,23 +21,31 @@ public :
 
     Engine(int screenWidth, int screenHeight);
     ~Engine();
-    void update();
+	void init();
+    
+	void update();
     void render();
-    void sendToBack(Actor *actor);
-    Actor *getActor(int x, int y) const;
+    
+	void sendToBack(Actor *actor);
+    
+	Actor *getActor(int x, int y) const;
     Actor *getClosestMonster(int x, int y, float range) const;
-    bool pickATile(int *x, int *y, float maxRange = 0.0f);
-	void setFullyExplored();
-	void changeLevel(signed int direction);
+    
+	bool pickATile(int *x, int *y, float maxRange = 0.0f);
 	
-   	void load(bool pause=false);
-	void loadContinueHelper();
+	void setFullyExplored();
+
+	void changeLevel(signed int direction);	
+   	
 	bool mapExists(int level);
 	void clearMapFiles();
 	
-	void save();
-	
-    void init();
+	// Defined in Persistent.cpp
+	void load(bool pause = false);
+	void loadContinueHelper();
+	void save();	    
+	////////////////////////////
+
     void term();
 };
  
