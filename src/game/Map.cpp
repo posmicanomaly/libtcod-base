@@ -61,19 +61,30 @@ void Map::init(bool withActors) {
 	}
 	/////////////////////////////////////////////////////////////////////////////////////
     map = new TCODMap(width,height);
+	/*
+	Not sure how I want to refactor the dungeon generation yet
+	So for now, MapFactory will take care of all the new generation additions
+	*/
+	// Dungeon
 	if (type == Type::DUNGEON) {
 		TCODBsp bsp(0, 0, width, height);
 		bsp.splitRecursive(rng, 8, ROOM_MAX_SIZE, ROOM_MAX_SIZE, 1.5f, 1.5f);
 		BspListener listener(*this);
 		bsp.traverseInvertedLevelOrder(&listener, (void *)withActors);
 	}
-	else {
+	// World
+	else if(type == Type::WORLD) {
+		// Fill with grass
 		for (int x = 0; x < width; x++) {
 			for (int y = 0; y < height; y++) {
 				tiles[x + y * width].type = Tile::Type::GRASS;
+				// If we don't do this, fov can't compute
 				map->setProperties(x, y, true, true);
 			}
 		}
+		MapFactory::addFeatureSeeds(*this, Tile::Type::FOREST, rng->getInt(10, 50));
+		MapFactory::addFeatureSeeds(*this, Tile::Type::MOUNTAIN, rng->getInt(20, 100));
+		MapFactory::addFeatureSeeds(*this, Tile::Type::WATER, rng->getInt(10, 50));
 	}
 }
 
@@ -257,8 +268,16 @@ void Map::computeFov() {
 }
 
 void Map::render() const {
+	/*
+	If using tile variation to affect the final color, using 255 will prevent that from occuring
+	*/
     static const TCODColor wall(TCODColor(40, 30, 30));
 	static const TCODColor floor(TCODColor(5, 5, 10));
+	static const TCODColor grass(TCODColor(0, 40, 0));
+	static const TCODColor forest(TCODColor(20, 70, 0));
+	static const TCODColor mountain(TCODColor(100, 50, 0));
+	static const TCODColor water(TCODColor(0, 0, 100));
+
 	static const TCODColor lightFore(TCODColor::white);
 	static const TCODColor darkFore(TCODColor::black);
 
@@ -270,11 +289,17 @@ void Map::render() const {
 			switch (tiles[x + y * width].type) {
 			case Tile::Type::FLOOR:	glyph = '.'; backColor = floor; foreColor = lightFore; break;
 			case Tile::Type::WALL:	glyph = '#'; backColor = wall; foreColor = darkFore; break;
-			case Tile::Type::GRASS:	glyph = ';'; backColor = TCODColor::green; foreColor = darkFore; break;
+			case Tile::Type::GRASS:	glyph = '"'; backColor = grass; foreColor = darkFore; break;
+			case Tile::Type::FOREST: glyph = '&'; backColor = forest; foreColor = darkFore; break;
+			case Tile::Type::MOUNTAIN: glyph = '^'; backColor = mountain; foreColor = darkFore; break;
+			case Tile::Type::WATER: glyph = '~'; backColor = water; foreColor = darkFore; break;
 			}
+			// If its not the world map
 			// Adjust brightness based on variation
 			// variation is currently set to be 1 - 10, so this gives us variation / 10 + 1, 10 would be twice the brightness
-			backColor = backColor * (float)((tiles[x + y * width].variation / 10) + 1);
+			if (type != Type::WORLD) {
+				backColor = backColor * (float)((tiles[x + y * width].variation / 10) + 1);
+			}
 	        if ( isInFov(x,y) ) {
 				TCODConsole::root->setChar(x, y, glyph);
 	            TCODConsole::root->setCharBackground(x,y,

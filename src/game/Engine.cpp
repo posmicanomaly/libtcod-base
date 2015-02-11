@@ -2,8 +2,9 @@
 #include <stdio.h>
 #include "main.hpp"
 
+// 2 is the default radius for WORLD
 Engine::Engine(int screenWidth, int screenHeight) : gameStatus(STARTUP),
-	player(NULL),map(NULL),fovRadius(10),
+	player(NULL),map(NULL),fovRadius(2),
 	screenWidth(screenWidth),screenHeight(screenHeight),level(1) {
 	TCODConsole::setCustomFont("terminal16x16_gs_ro.png", TCOD_FONT_LAYOUT_ASCII_INROW);
     TCODConsole::initRoot(screenWidth,screenHeight,"libtcod C++ tutorial",false);
@@ -240,6 +241,14 @@ void Engine::changeLevel(signed int direction) {
 		player->x = map->stairs->x;
 		player->y = map->stairs->y;
 	}	
+
+	// Last step, set the engine FoV in case its world
+	if (map->type == Map::Type::WORLD) {
+		engine.fovRadius = 2;
+	}
+	else {
+		engine.fovRadius = 10;
+	}
 }
 
 bool Engine::mapExists(int level) {

@@ -2,7 +2,7 @@ struct Tile {
     bool explored; // has the player already seen this tile ?
 	int variation;
 	enum Type {
-		FLOOR, WALL, GRASS
+		FLOOR, WALL, GRASS, FOREST, MOUNTAIN, WATER
 	} type;
     Tile() : explored(false), type(WALL) {}
 };
@@ -35,12 +35,15 @@ public :
 	////////////////////////
 	void save();
  	void init(bool withActors);
+	
 protected :
     Tile *tiles;
     TCODMap *map;
     long seed;
-    TCODRandom *rng;
+	TCODRandom *rng;
+
     friend class BspListener;
+	friend class MapFactory;
  
     void dig(int x1, int y1, int x2, int y2);
     void createRoom(bool first, int x1, int y1, int x2, int y2,bool withActors);

@@ -8,6 +8,8 @@ class Actor;
 #include "Pickable.hpp"
 #include "Container.hpp"
 #include "Actor.hpp"
+class MapFactory;
 #include "Map.hpp"
+#include "MapFactory.hpp"
 #include "Gui.hpp"
 #include "Engine.hpp"
