@@ -353,7 +353,12 @@ void Engine::loadContinueHelper() {
 	level = zip.getInt();
 	int width = zip.getInt();
 	int height = zip.getInt();
-	map = new Map(width, height);
+	if (level > 1) {
+		map = new Map(width, height, Map::Type::DUNGEON);
+	}
+	else {
+		map = new Map(width, height, Map::Type::WORLD);
+	}
 	//TCODZip mapZip;
 	//mapZip.loadFromFile("save/map." + level);
 	map->load(level);

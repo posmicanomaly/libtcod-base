@@ -2,7 +2,7 @@ struct Tile {
     bool explored; // has the player already seen this tile ?
 	int variation;
 	enum Type {
-		FLOOR, WALL
+		FLOOR, WALL, GRASS
 	} type;
     Tile() : explored(false), type(WALL) {}
 };
@@ -10,8 +10,10 @@ struct Tile {
 class Map : public Persistent {
 public :
     int width,height;
- 
-    Map(int width, int height);
+	enum Type {
+		DUNGEON, WORLD
+	} type;
+    Map(int width, int height, Type type);
     ~Map();
     bool isWall(int x, int y) const;
 	bool isInFov(int x, int y) const;

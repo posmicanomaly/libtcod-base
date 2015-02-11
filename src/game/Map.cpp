@@ -35,8 +35,8 @@ public :
     }
 };
 
-Map::Map(int width, int height) 
-	: width(width),height(height) {
+Map::Map(int width, int height, Type type) 
+	: width(width),height(height), type(type) {
 	std::cout << "Map()" << std::endl;
 	seed=TCODRandom::getInstance()->getInt(0,0x7FFFFFFF);
 	// Down stairs
@@ -61,10 +61,20 @@ void Map::init(bool withActors) {
 	}
 	/////////////////////////////////////////////////////////////////////////////////////
     map = new TCODMap(width,height);
-    TCODBsp bsp(0,0,width,height);
-    bsp.splitRecursive(rng,8,ROOM_MAX_SIZE,ROOM_MAX_SIZE,1.5f,1.5f);
-    BspListener listener(*this);
-    bsp.traverseInvertedLevelOrder(&listener,(void *)withActors);
+	if (type == Type::DUNGEON) {
+		TCODBsp bsp(0, 0, width, height);
+		bsp.splitRecursive(rng, 8, ROOM_MAX_SIZE, ROOM_MAX_SIZE, 1.5f, 1.5f);
+		BspListener listener(*this);
+		bsp.traverseInvertedLevelOrder(&listener, (void *)withActors);
+	}
+	else {
+		for (int x = 0; x < width; x++) {
+			for (int y = 0; y < height; y++) {
+				tiles[x + y * width].type = Tile::Type::GRASS;
+				map->setProperties(x, y, true, true);
+			}
+		}
+	}
 }
 
 Map::~Map() {
@@ -254,6 +264,7 @@ void Map::render() const {
 			switch (tiles[x + y * width].type) {
 			case Tile::Type::FLOOR:	glyph = '.'; backColor = floor; foreColor = lightFore; break;
 			case Tile::Type::WALL:	glyph = '#'; backColor = wall; foreColor = darkFore; break;
+			case Tile::Type::GRASS:	glyph = ';'; backColor = TCODColor::green; foreColor = darkFore; break;
 			}
 			// Adjust brightness based on variation
 			// variation is currently set to be 1 - 10, so this gives us variation / 10 + 1, 10 would be twice the brightness

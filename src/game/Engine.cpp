@@ -18,7 +18,7 @@ void Engine::init() {
 	std::cout << "Engine::init()" << std::endl;
 	// Reset level here?
 	level = 1;
-    map = new Map(80,43);
+    map = new Map(80,43, Map::Type::WORLD);
     map->init(true);
 
 	// Does the player alraedy point to something?
@@ -209,7 +209,7 @@ void Engine::changeLevel(signed int direction) {
 	level += direction;
 
 	// Create a new map
-	map = new Map(80, 43);
+	map = new Map(80, 43, Map::Type::DUNGEON);
 	// If the map doesn't exist at the next level, create a new one
 	if (!mapExists(level)) {
 		map->init(true);
