@@ -13,7 +13,7 @@ void Map::load(int level) {
 	char fileName[16];
 	sprintf_s(fileName, "%s.%d", "save/map", level);
 	zip.loadFromFile(fileName);
-	
+	type = static_cast<Map::Type>(zip.getInt());
 	seed=zip.getInt();
     init(false);
 	for (int i=0; i < width*height; i++) {
@@ -50,7 +50,7 @@ void Map::save() {
 	}
 	std::cout << "Map::save()" << std::endl;
 	TCODZip zip;
-	
+	zip.putInt(type);
 	zip.putInt(seed);
 	for (int i=0; i < width*height; i++) {
 		zip.putInt(tiles[i].explored);
@@ -353,12 +353,7 @@ void Engine::loadContinueHelper() {
 	level = zip.getInt();
 	int width = zip.getInt();
 	int height = zip.getInt();
-	if (level > 1) {
-		map = new Map(width, height, Map::Type::DUNGEON);
-	}
-	else {
-		map = new Map(width, height, Map::Type::WORLD);
-	}
+	map = new Map(width, height, Map::Type::LOADING);
 	//TCODZip mapZip;
 	//mapZip.loadFromFile("save/map." + level);
 	map->load(level);

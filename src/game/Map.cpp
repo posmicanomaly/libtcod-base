@@ -209,6 +209,12 @@ bool Map::isWall(int x, int y) const {
 }
 
 bool Map::canWalk(int x, int y) const {
+	/*if (x < 0 || x >= width) {
+		return false;
+	}
+	if (y < 0 || y >= height) {
+		return false;
+	}*/
     if (isWall(x,y)) {
         // this is a wall
         return false;

@@ -10,8 +10,9 @@ struct Tile {
 class Map : public Persistent {
 public :
     int width,height;
+	// Use loading for, well, loading the map, the map's load function will put back the correct type.
 	enum Type {
-		DUNGEON, WORLD
+		LOADING, DUNGEON, WORLD
 	} type;
     Map(int width, int height, Type type);
     ~Map();
