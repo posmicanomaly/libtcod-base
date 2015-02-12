@@ -3,6 +3,10 @@
 const int SCREEN_WIDTH = 80;
 const int SCREEN_HEIGHT = 50;
 
+void dbglog(std::string s) {
+	std::cout << s;
+}
+
 Engine engine(SCREEN_WIDTH,SCREEN_HEIGHT);
 
 int main() {

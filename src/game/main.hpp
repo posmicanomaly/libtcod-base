@@ -1,4 +1,6 @@
 #include <iostream>
+#include <string>
+void dbglog(std::string s);
 #include "..\libtcod\libtcod.hpp"
 class Actor;
 #include "Persistent.hpp"

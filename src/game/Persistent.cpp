@@ -333,7 +333,7 @@ void Engine::load(bool pause) {
 		engine.init();
 		
 	} else {
-		std::cout << "\tMenu::CONTINUE" << std::endl;
+		dbglog("\tMenu::CONTINUE\n");
 		loadContinueHelper();
 	}	
 }
@@ -344,7 +344,7 @@ void Engine::loadContinueHelper() {
 		zip.loadFromFile(path);
 		int version = zip.getInt();
 		if (version != SAVEGAME_VERSION) {
-			std::cout << "Engine::loadContinueHelper() SAVEGAME_VERSION mismatch" << std::endl;
+			dbglog("Engine::loadContinueHelper() SAVEGAME_VERSION mismatch\n");
 		}
 	}
 	// continue a saved game
@@ -370,7 +370,7 @@ void Engine::loadContinueHelper() {
 }
 
 void Engine::save() {
-	std::cout << "Engine::save()" << std::endl;
+	dbglog("Engine::save()\n");
 	if ( player->destructible->isDead() ) {
 		TCODSystem::deleteFile(path);
 		clearMapFiles();
