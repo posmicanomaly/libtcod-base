@@ -205,11 +205,20 @@ void Engine::changeLevel(signed int direction, Actor *actor) {
 		return;
 	}
 	std::string actorName;
+
+	// Store the old map name in case we end up going back to the world map, so we can place the player
+	// on the entrance to the cave.
 	std::string oldMapName = map->name;
+
 	//Store the name of the actor passed in, to determine the correct map file to load
+
+	// If the current map is named "world", then we are going into a cave
+	// So the actorName(mapName) must be set to the cave's name.
 	if (map->name == "world") {
 		actorName = actor->name;
 	}
+	// Otherwise, we are already inside a cave, and are moving around through stairs most likely
+	// So keep the same name for the next map.
 	else {
 		actorName = map->name;
 	}
@@ -231,7 +240,9 @@ void Engine::changeLevel(signed int direction, Actor *actor) {
 	// Increment/Decrement level based on direction
 	level += direction;
 
+	// Check if we're going to the world map
 	if (level == 0) {
+		// Hack, set name to "world"
 		actorName = "world";
 	}
 
@@ -244,8 +255,7 @@ void Engine::changeLevel(signed int direction, Actor *actor) {
 		map->name = actorName;
 	}
 	// Otherwise load the map from file
-	else {
-		
+	else {		
 		map->load(level, actorName);
 	}
 	// Add the player, so it can be deleted and not leak memory
@@ -266,6 +276,8 @@ void Engine::changeLevel(signed int direction, Actor *actor) {
 		player->y = map->stairsUp->y;
 	}
 	else {
+		// If we're going to the world, then we need to put the player on the cave they came from
+		// This is where oldMapName comes in.
 		if (map->name == "world") {
 			Actor *caveEntrance;
 			for (Actor **iterator = map->actors.begin();
