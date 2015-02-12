@@ -2,16 +2,13 @@
 #include <stdio.h>
 #include "main.hpp"
 
-// 2 is the default radius for WORLD
+static const int WORLD_FOV_RADIUS = 2;
 Engine::Engine(int screenWidth, int screenHeight) : gameStatus(STARTUP),
-	player(NULL),map(NULL),fovRadius(2),
+	player(NULL),map(NULL),fovRadius(WORLD_FOV_RADIUS),
 	screenWidth(screenWidth),screenHeight(screenHeight),level(1) {
+	dbglog("LIBTCOD-BASE\nRoguelike Engine\nJesse Pospisil 2015\n-----\n");
 	TCODConsole::setCustomFont("terminal16x16_gs_ro.png", TCOD_FONT_LAYOUT_ASCII_INROW);
-    TCODConsole::initRoot(screenWidth,screenHeight,"libtcod C++ tutorial",false);
-	// Have to put a dummy map here so when term is called it doesn't crash when trying to access map->actors
-	// It will get deleted anyway in term, and we'll get a new one.
-	//map = new Map(80, 43);
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////
+    TCODConsole::initRoot(screenWidth,screenHeight,"libtcod-base",false);
     gui = new Gui();
 }
 
@@ -244,7 +241,7 @@ void Engine::changeLevel(signed int direction) {
 
 	// Last step, set the engine FoV in case its world
 	if (map->type == Map::Type::WORLD) {
-		engine.fovRadius = 2;
+		engine.fovRadius = WORLD_FOV_RADIUS;
 	}
 	else {
 		engine.fovRadius = 10;
