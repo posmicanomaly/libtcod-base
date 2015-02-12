@@ -16,6 +16,7 @@ void Engine::init() {
 	std::cout << "Engine::init()" << std::endl;
 	// Reset level here?
 	level = 0;
+	fovRadius = WORLD_FOV_RADIUS;
     map = new Map(80,43, Map::Type::WORLD);
     map->init(true);
 
@@ -204,6 +205,7 @@ void Engine::changeLevel(signed int direction, Actor *actor) {
 		return;
 	}
 	std::string actorName;
+	std::string oldMapName = map->name;
 	//Store the name of the actor passed in, to determine the correct map file to load
 	if (map->name == "world") {
 		actorName = actor->name;
@@ -264,9 +266,23 @@ void Engine::changeLevel(signed int direction, Actor *actor) {
 		player->y = map->stairsUp->y;
 	}
 	else {
-		// Player on the down stair of the previous level
-		player->x = map->stairs->x;
-		player->y = map->stairs->y;
+		if (map->name == "world") {
+			Actor *caveEntrance;
+			for (Actor **iterator = map->actors.begin();
+				iterator != map->actors.end();
+				iterator++) {
+				Actor *actor = *iterator;
+				if (actor->name == oldMapName) {
+					player->x = actor->x;
+					player->y = actor->y;
+				}
+			}
+		}
+		else {
+			// Player on the down stair of the previous level
+			player->x = map->stairs->x;
+			player->y = map->stairs->y;
+		}
 	}	
 
 	// Last step, set the engine FoV in case its world
