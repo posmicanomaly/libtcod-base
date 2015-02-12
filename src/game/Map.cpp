@@ -36,7 +36,7 @@ public :
 };
 
 Map::Map(int width, int height, Type type) 
-	: width(width),height(height), type(type) {
+	: width(width),height(height), type(type), name("default map") {
 	std::cout << "Map()" << std::endl;
 	seed=TCODRandom::getInstance()->getInt(0,0x7FFFFFFF);
 	// Down stairs
@@ -61,10 +61,12 @@ void Map::init(bool withActors) {
 	}
 	/////////////////////////////////////////////////////////////////////////////////////
     map = new TCODMap(width,height);
+	
 	/*
 	Not sure how I want to refactor the dungeon generation yet
 	So for now, MapFactory will take care of all the new generation additions
 	*/
+
 	// Dungeon
 	if (type == Type::DUNGEON) {
 		TCODBsp bsp(0, 0, width, height);
@@ -72,19 +74,11 @@ void Map::init(bool withActors) {
 		BspListener listener(*this);
 		bsp.traverseInvertedLevelOrder(&listener, (void *)withActors);
 	}
+
 	// World
 	else if(type == Type::WORLD) {
-		// Fill with grass
-		for (int x = 0; x < width; x++) {
-			for (int y = 0; y < height; y++) {
-				tiles[x + y * width].type = Tile::Type::GRASS;
-				// If we don't do this, fov can't compute
-				map->setProperties(x, y, true, true);
-			}
-		}
-		MapFactory::addFeatureSeeds(*this, Tile::Type::FOREST, rng->getInt(10, 50));
-		MapFactory::addFeatureSeeds(*this, Tile::Type::MOUNTAIN, rng->getInt(20, 100));
-		MapFactory::addFeatureSeeds(*this, Tile::Type::WATER, rng->getInt(10, 50));
+		MapFactory::makeWorldMap(*this);
+		name = "world";
 	}
 }
 
@@ -212,6 +206,38 @@ void Map::createRoom(bool first, int x1, int y1, int x2, int y2, bool withActors
 		stairs->x=(x1+x2)/2;
 		stairs->y=(y1+y2)/2;
     }
+}
+
+bool Map::hasCaveAt(Actor *owner) const{
+	for (Actor **iterator = actors.begin();
+		iterator != actors.end();
+		iterator++) {
+		Actor *actor = *iterator;
+		if (actor->x == owner->x && actor->y == owner->y) {
+			// Hack
+			if (actor->ch == '*') {
+				std::cout << "cave: " << actor->x << ", " << actor->y << " owner: " << owner->x << ", " << owner->y << std::endl;
+				return true;
+			}
+		}
+	}
+	return false;
+}
+
+Actor *Map::getCaveAt(Actor *owner) {
+	for (Actor **iterator = actors.begin();
+		iterator != actors.end();
+		iterator++) {
+		Actor *actor = *iterator;
+		if (actor->x == owner->x && actor->y == owner->y) {
+			// Hack
+			if (actor->ch == '*') {
+				std::cout << "cave: " << actor->x << ", " << actor->y << " owner: " << owner->x << ", " << owner->y << std::endl;
+				return actor;
+			}
+		}
+	}
+	return NULL;
 }
 
 bool Map::isWall(int x, int y) const {

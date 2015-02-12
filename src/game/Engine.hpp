@@ -35,9 +35,9 @@ public :
 	
 	void setFullyExplored();
 
-	void changeLevel(signed int direction);	
+	void changeLevel(signed int direction, Actor *actor = NULL);	
    	
-	bool mapExists(int level);
+	bool mapExists(int level, std::string mapName);
 	void clearMapFiles();
 	
 	// Defined in Persistent.cpp

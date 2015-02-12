@@ -15,14 +15,23 @@ Engine::Engine(int screenWidth, int screenHeight) : gameStatus(STARTUP),
 void Engine::init() {  
 	std::cout << "Engine::init()" << std::endl;
 	// Reset level here?
-	level = 1;
+	level = 0;
     map = new Map(80,43, Map::Type::WORLD);
     map->init(true);
 
-	// Does the player alraedy point to something?
-	// These are leaking
+	// Hack: player doesn't start on up stairs if its the world map, start them in center;
+	int playerStartX, playerStartY;
+	if (map->type == Map::Type::WORLD) {
+		playerStartX = map->width / 2;
+		playerStartY = map->height / 2;
+	}
+	else {
+		playerStartX = map->stairsUp->x;
+		playerStartY = map->stairsUp->y;
+	}
+	player = new Actor(playerStartX, playerStartY, '@', "player", TCODColor::white);
+	////////////////////////////////////////////////////////////////////////////////////////
 
-	player = new Actor(map->stairsUp->x, map->stairsUp->y, '@', "player", TCODColor::white);
 	player->destructible = new PlayerDestructible(30, 2, "your cadaver");
 	player->attacker = new Attacker(5);
 	player->ai = new PlayerAi();
@@ -160,33 +169,47 @@ void Engine::setFullyExplored() {
 }
 
 void Engine::clearMapFiles() {
-	int maxLevel = 1;
-	while (mapExists(maxLevel)) {
-		char fileName[16];
-		sprintf_s(fileName, "%s.%d", "save/map", maxLevel);
-		TCODSystem::deleteFile(fileName);
-		maxLevel++;
-	}
+	//int maxLevel = 1;
+	//while (mapExists(maxLevel)) {
+	//	char fileName[16];
+	//	sprintf_s(fileName, "%s.%d", "save/map", maxLevel);
+	//	TCODSystem::deleteFile(fileName);
+	//	maxLevel++;
+	//}
+	system("exec rm -r save/*");
 }
-void Engine::changeLevel(signed int direction) {
+/*
+TODO:
+Map needs to go back to world map if its going to be level 1, level 0?
+The name might need to be tracked by engine for current map, so we don't name it "stairs"
+*/
+void Engine::changeLevel(signed int direction, Actor *actor) {
 	// Let's support only -1 and +1 at this point
 	if (direction < -1) {
-		std::cout << "Engine::changeLevel() direction too low. Use -1 or 1" << std::endl;
+		dbglog("Engine::changeLevel() direction too low. Use -1 or 1");
 		return;
 	}
 	else if (direction > 1) {
-		std::cout << "Engine::changeLevel() direction too high, use -1, or 1" << std::endl;
+		dbglog("Engine::changeLevel() direction too high, use -1, or 1");
 		return;
 	}
 	else if (direction == 0) {
-		std::cout << "Engine::changeLevel() direction is zero, use -1 or 1" << std::endl;
+		dbglog("Engine::changeLevel() direction is zero, use -1 or 1");
 		return;
 	}
 
 	// Do some bounds checking
-	if (level + direction < 1) {
-		std::cout << "At the highest level already" << std::endl;
+	if (level + direction < 0) {
+		dbglog("At the highest level already");
 		return;
+	}
+	std::string actorName;
+	//Store the name of the actor passed in, to determine the correct map file to load
+	if (map->name == "world") {
+		actorName = actor->name;
+	}
+	else {
+		actorName = map->name;
 	}
 
 	// First save the current game, because we're using the engine load fnction,
@@ -206,15 +229,22 @@ void Engine::changeLevel(signed int direction) {
 	// Increment/Decrement level based on direction
 	level += direction;
 
+	if (level == 0) {
+		actorName = "world";
+	}
+
 	// Create a new map
 	map = new Map(80, 43, Map::Type::DUNGEON);
+	
 	// If the map doesn't exist at the next level, create a new one
-	if (!mapExists(level)) {
+	if (!mapExists(level, actorName)) {
 		map->init(true);
+		map->name = actorName;
 	}
 	// Otherwise load the map from file
 	else {
-		map->load(level);
+		
+		map->load(level, actorName);
 	}
 	// Add the player, so it can be deleted and not leak memory
 	map->actors.push(player);
@@ -248,9 +278,9 @@ void Engine::changeLevel(signed int direction) {
 	}
 }
 
-bool Engine::mapExists(int level) {
-	char fileName[16];
-	sprintf_s(fileName, "%s.%d", "save/map", level);
+bool Engine::mapExists(int level, std::string mapName) {
+	char fileName[64];
+	sprintf_s(fileName, "%s/%s.%d", "save",mapName.c_str(), level);
 	return TCODSystem::fileExists(fileName);
 }
 

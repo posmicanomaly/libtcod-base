@@ -8,11 +8,12 @@ void Map::load(TCODZip &zip) {
 void Map::save(TCODZip &zip) {
 	std::cout << "map::save(tcodzip &zip) deprecated" << std::endl;
 }
-void Map::load(int level) {
+void Map::load(int level, std::string mapName) {
 	TCODZip zip;
-	char fileName[16];
-	sprintf_s(fileName, "%s.%d", "save/map", level);
+	char fileName[64];
+	sprintf_s(fileName, "%s/%s.%d", "save", mapName.c_str(), level);
 	zip.loadFromFile(fileName);
+	name = zip.getString();
 	type = static_cast<Map::Type>(zip.getInt());
 	seed=zip.getInt();
     init(false);
@@ -43,13 +44,16 @@ void Map::load(int level) {
 }
 
 void Map::save() {
-	char fileName[16];
-	sprintf_s(fileName, "%s.%d", "save/map", engine.level);
-	if (engine.mapExists(engine.level)) {
+	char fileName[64];
+	sprintf_s(fileName, "%s/%s.%d", "save", name.c_str(), engine.level);
+	if (engine.mapExists(engine.level, name.c_str())) {
 		TCODSystem::deleteFile(fileName);
 	}
 	std::cout << "Map::save()" << std::endl;
+	std::cout << "fileName: " << fileName << std::endl;
 	TCODZip zip;
+
+	zip.putString(name.c_str());
 	zip.putInt(type);
 	zip.putInt(seed);
 	for (int i=0; i < width*height; i++) {
@@ -350,13 +354,14 @@ void Engine::loadContinueHelper() {
 	// continue a saved game
 	engine.term();
 	// load the map
+	std::string mapName = zip.getString();
 	level = zip.getInt();
 	int width = zip.getInt();
 	int height = zip.getInt();
 	map = new Map(width, height, Map::Type::LOADING);
 	//TCODZip mapZip;
 	//mapZip.loadFromFile("save/map." + level);
-	map->load(level);
+	map->load(level, mapName);
 	// then the player
 	player = new Actor(0, 0, 0, NULL, TCODColor::white);
 	engine.map->actors.push(player);
@@ -377,6 +382,7 @@ void Engine::save() {
 	} else {
 		TCODZip zip;
 		zip.putInt(SAVEGAME_VERSION);
+		zip.putString(map->name.c_str());
 		zip.putInt(level);
 		// save the map first
 		zip.putInt(map->width);

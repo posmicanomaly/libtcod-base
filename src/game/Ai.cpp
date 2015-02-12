@@ -215,15 +215,19 @@ void PlayerAi::handleActionKey(Actor *owner, int ascii) {
 		case '>' :
 			if ( engine.map->stairs->x == owner->x && engine.map->stairs->y == owner->y ) {
 				//engine.nextLevel();
-				engine.changeLevel(1);
-			} else {
-				engine.gui->message(TCODColor::lightGrey,"There are no stairs here.");
+				engine.changeLevel(1, engine.map->stairs);
+			} 
+			else if (engine.map->hasCaveAt(owner)) {
+				engine.changeLevel(1, engine.map->getCaveAt(owner));
+			}
+			else {
+				engine.gui->message(TCODColor::lightGrey,"There are no stairs/caves here.");
 			}
 		break;
 		case '<' :
 			if (engine.map->stairsUp->x == owner->x && engine.map->stairsUp->y == owner->y) {
 				//engine.previousLevel();
-				engine.changeLevel(-1);
+				engine.changeLevel(-1, engine.map->stairs);
 			}
 			else {
 				engine.gui->message(TCODColor::lightGrey, "There are no stairs here.");

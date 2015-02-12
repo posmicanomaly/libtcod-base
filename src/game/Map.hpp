@@ -10,6 +10,7 @@ struct Tile {
 class Map : public Persistent {
 public :
     int width,height;
+	std::string name;
 	// Use loading for, well, loading the map, the map's load function will put back the correct type.
 	enum Type {
 		LOADING, DUNGEON, WORLD
@@ -23,12 +24,14 @@ public :
     void computeFov();
     void render() const;
 	TCODList<Actor *> actors;
+	bool hasCaveAt(Actor *owner) const;
+	Actor *getCaveAt(Actor *owner);
 	Actor *stairs;
 	Actor *stairsUp;
 
 	void setFullyExplored();
 
-	void load(int level);
+	void load(int level, std::string mapName);
 	//not used
 	void load(TCODZip &zip);
 	void save(TCODZip &zip);

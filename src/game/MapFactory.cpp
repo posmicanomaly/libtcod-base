@@ -1,5 +1,38 @@
 #include "main.hpp"
 
+void MapFactory::makeWorldMap(Map &map) {
+	// Fill with grass
+	for (int x = 0; x < map.width; x++) {
+		for (int y = 0; y < map.height; y++) {
+			map.tiles[x + y * map.width].type = Tile::Type::GRASS;
+			// If we don't do this, fov can't compute
+			map.map->setProperties(x, y, true, true);
+		}
+	}
+	addFeatureSeeds(map, Tile::Type::FOREST, map.rng->getInt(10, 50));
+	addFeatureSeeds(map, Tile::Type::MOUNTAIN, map.rng->getInt(20, 100));
+	addFeatureSeeds(map, Tile::Type::WATER, map.rng->getInt(10, 50));
+	// Hack: move stairsUp off screen
+	map.stairsUp->x = -1;
+	map.stairsUp->y = -1;
+	///////////////////////////////////
+	// Add some caves
+	for (int i = 0; i < 20; i++) {
+		Tile *tile;
+		int x, y;
+		do {
+			x = map.rng->getInt(1, map.width);
+			y = map.rng->getInt(1, map.height);
+			tile = &map.tiles[x + y * map.width];
+		} while (tile->type != Tile::Type::MOUNTAIN);
+		std::string name = "Cave" + std::to_string(i);
+
+		Actor *cave = new Actor(x, y, '*', name.c_str(), TCODColor::white);
+		cave->fovOnly = false;
+		cave->blocks = false;
+		map.actors.push(cave);
+	}
+}
 /*
 Adds <amount> of <type> to <map>
 for each amount, use a random strength to spread it around
