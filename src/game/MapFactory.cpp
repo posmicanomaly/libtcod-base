@@ -12,12 +12,27 @@ void MapFactory::makeWorldMap(Map &map) {
 	addFeatureSeeds(map, Tile::Type::FOREST, map.rng->getInt(10, 50));
 	addFeatureSeeds(map, Tile::Type::MOUNTAIN, map.rng->getInt(20, 100));
 	addFeatureSeeds(map, Tile::Type::WATER, map.rng->getInt(10, 50));
+	// set the map properties for mountains
+	for (int x = 0; x < map.width; x++) {
+		for (int y = 0; y < map.height; y++) {
+			if (map.tiles[x + y * map.width].type == Tile::Type::MOUNTAIN) {
+				map.map->setProperties(x, y, true, false);
+			}
+		}
+	}
 	// Hack: move stairsUp off screen
 	map.stairsUp->x = -1;
 	map.stairsUp->y = -1;
 	///////////////////////////////////
 	// Add some caves
-	for (int i = 0; i < 20; i++) {
+	std::vector<std::string> names;
+	names.push_back("Generic Caverns of ASCII");
+	names.push_back("Similar Dungeon of R");
+	names.push_back("Terrific Example of Dungeon");
+	names.push_back("Another Dungeon");
+	names.push_back("Dungeon of Dismay");
+	names.push_back("Caves of Clacking");
+	for (int i = 0; i < names.size(); i++) {
 		Tile *tile;
 		int x, y;
 		do {
@@ -25,12 +40,15 @@ void MapFactory::makeWorldMap(Map &map) {
 			y = map.rng->getInt(1, map.height);
 			tile = &map.tiles[x + y * map.width];
 		} while (tile->type != Tile::Type::MOUNTAIN);
-		std::string name = "Cave" + std::to_string(i);
+		std::string name = names[i];
 
 		Actor *cave = new Actor(x, y, '*', name.c_str(), TCODColor::white);
 		cave->fovOnly = false;
 		cave->blocks = false;
 		map.actors.push(cave);
+		// Make the tile walkable
+		map.tiles[x + y * map.width].type = Tile::Type::GRASS;
+		map.map->setProperties(x, y, true, true);
 	}
 }
 /*

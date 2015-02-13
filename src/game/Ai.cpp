@@ -142,6 +142,7 @@ bool PlayerAi::moveOrAttack(Actor *owner, int targetx,int targety) {
 	if (targetx < 0 || targetx >= engine.map->width) return false;
 	if (targety < 0 || targety >= engine.map->height) return false;
 	if ( engine.map->isWall(targetx,targety) ) return false;
+	if (engine.map->isMountain(targetx, targety)) return false;
 	// look for living actors to attack
 	for (Actor **iterator=engine.map->actors.begin();
 		iterator != engine.map->actors.end(); iterator++) {

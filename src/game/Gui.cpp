@@ -56,7 +56,12 @@ void Gui::render() {
 
 	// dungeon level
 	con->setDefaultForeground(TCODColor::white);
-	con->print(3,3,"Dungeon level %d",engine.level);
+	if (engine.level == 0) {
+		con->print(3, 3, "World");
+	}
+	else {
+		con->print(3, 3, "%s L. %d", engine.map->name.c_str(), engine.level);
+	}
 
 	// blit the GUI console on the root console
 	TCODConsole::blit(con,0,0,engine.screenWidth,PANEL_HEIGHT,

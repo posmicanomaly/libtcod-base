@@ -18,6 +18,7 @@ public :
     Map(int width, int height, Type type);
     ~Map();
     bool isWall(int x, int y) const;
+	bool isMountain(int x, int y) const;
 	bool isInFov(int x, int y) const;
     bool isExplored(int x, int y) const;
     bool canWalk(int x, int y) const;

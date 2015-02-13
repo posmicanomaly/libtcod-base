@@ -1,5 +1,6 @@
 #include <iostream>
 #include <string>
+#include <vector>
 void dbglog(std::string s);
 #include "..\libtcod\libtcod.hpp"
 class Actor;

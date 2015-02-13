@@ -245,6 +245,10 @@ bool Map::isWall(int x, int y) const {
 	return tiles[x + y * width].type == Tile::Type::WALL;
 }
 
+bool Map::isMountain(int x, int y) const {
+	return tiles[x + y * width].type == Tile::Type::MOUNTAIN;
+}
+
 bool Map::canWalk(int x, int y) const {
 	/*if (x < 0 || x >= width) {
 		return false;

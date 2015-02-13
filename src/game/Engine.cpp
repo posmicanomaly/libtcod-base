@@ -186,19 +186,10 @@ The name might need to be tracked by engine for current map, so we don't name it
 */
 void Engine::changeLevel(signed int direction, Actor *actor) {
 	// Let's support only -1 and +1 at this point
-	if (direction < -1) {
-		dbglog("Engine::changeLevel() direction too low. Use -1 or 1");
+	if (direction < -1 || direction > 1 || direction == 0) {
+		dbglog("Engine::changeLevel() direction incorrect. Use -1 or 1");
 		return;
 	}
-	else if (direction > 1) {
-		dbglog("Engine::changeLevel() direction too high, use -1, or 1");
-		return;
-	}
-	else if (direction == 0) {
-		dbglog("Engine::changeLevel() direction is zero, use -1 or 1");
-		return;
-	}
-
 	// Do some bounds checking
 	if (level + direction < 0) {
 		dbglog("At the highest level already");
@@ -304,6 +295,7 @@ void Engine::changeLevel(signed int direction, Actor *actor) {
 	else {
 		engine.fovRadius = 10;
 	}
+	gui->message(TCODColor::green, "You entered %s", map->name.c_str());
 }
 
 bool Engine::mapExists(int level, std::string mapName) {
