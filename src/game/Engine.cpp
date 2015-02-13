@@ -195,23 +195,32 @@ void Engine::changeLevel(signed int direction, Actor *actor) {
 		dbglog("At the highest level already");
 		return;
 	}
-	std::string actorName;
+	std::string nextMapName;
 
 	// Store the old map name in case we end up going back to the world map, so we can place the player
 	// on the entrance to the cave.
 	std::string oldMapName = map->name;
+
+	// What type to create?
+	// Hack: look at the Actor' glyph: * - cave O - town
+	Map::Type nextMapType;
+	switch (actor->ch) {
+	case '*': nextMapType = Map::Type::DUNGEON; break;
+	case 'O': nextMapType = Map::Type::TOWN; break;
+	default: nextMapType = Map::Type::DUNGEON; break;
+	}
 
 	//Store the name of the actor passed in, to determine the correct map file to load
 
 	// If the current map is named "world", then we are going into a cave
 	// So the actorName(mapName) must be set to the cave's name.
 	if (map->name == "world") {
-		actorName = actor->name;
+		nextMapName = actor->name;
 	}
 	// Otherwise, we are already inside a cave, and are moving around through stairs most likely
 	// So keep the same name for the next map.
 	else {
-		actorName = map->name;
+		nextMapName = map->name;
 	}
 
 	// First save the current game, because we're using the engine load fnction,
@@ -234,20 +243,21 @@ void Engine::changeLevel(signed int direction, Actor *actor) {
 	// Check if we're going to the world map
 	if (level == 0) {
 		// Hack, set name to "world"
-		actorName = "world";
+		nextMapName = "world";
 	}
 
 	// Create a new map
-	map = new Map(80, 43, Map::Type::DUNGEON);
+	
+	map = new Map(80, 43, nextMapType);
 	
 	// If the map doesn't exist at the next level, create a new one
-	if (!mapExists(level, actorName)) {
+	if (!mapExists(level, nextMapName)) {
 		map->init(true);
-		map->name = actorName;
+		map->name = nextMapName;
 	}
 	// Otherwise load the map from file
 	else {		
-		map->load(level, actorName);
+		map->load(level, nextMapName);
 	}
 	// Add the player, so it can be deleted and not leak memory
 	map->actors.push(player);

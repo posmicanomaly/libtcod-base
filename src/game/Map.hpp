@@ -13,7 +13,7 @@ public :
 	std::string name;
 	// Use loading for, well, loading the map, the map's load function will put back the correct type.
 	enum Type {
-		LOADING, DUNGEON, WORLD
+		LOADING, DUNGEON, WORLD, TOWN
 	} type;
     Map(int width, int height, Type type);
     ~Map();
@@ -25,8 +25,9 @@ public :
     void computeFov();
     void render() const;
 	TCODList<Actor *> actors;
-	bool hasCaveAt(Actor *owner) const;
-	Actor *getCaveAt(Actor *owner);
+	bool hasFeatureAt(Actor *owner, const char featureGlyph) const;
+	bool hasFeatureAt(int x, int y, const char featureGlyph) const;
+	Actor *getFeatureAt(Actor *owner, const char featureGlyph);
 	Actor *stairs;
 	Actor *stairsUp;
 

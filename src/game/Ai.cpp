@@ -218,16 +218,18 @@ void PlayerAi::handleActionKey(Actor *owner, int ascii) {
 				//engine.nextLevel();
 				engine.changeLevel(1, engine.map->stairs);
 			} 
-			else if (engine.map->hasCaveAt(owner)) {
-				engine.changeLevel(1, engine.map->getCaveAt(owner));
+			else if (engine.map->hasFeatureAt(owner, '*')) {
+				engine.changeLevel(1, engine.map->getFeatureAt(owner, '*'));
+			}
+			else if (engine.map->hasFeatureAt(owner, 'O')) {
+				engine.changeLevel(1, engine.map->getFeatureAt(owner, 'O'));
 			}
 			else {
-				engine.gui->message(TCODColor::lightGrey,"There are no stairs/caves here.");
+				engine.gui->message(TCODColor::lightGrey,"There are no stairs/caves/towns here.");
 			}
 		break;
 		case '<' :
 			if (engine.map->stairsUp->x == owner->x && engine.map->stairsUp->y == owner->y) {
-				//engine.previousLevel();
 				engine.changeLevel(-1, engine.map->stairs);
 			}
 			else {

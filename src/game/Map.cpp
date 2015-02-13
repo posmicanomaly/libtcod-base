@@ -80,6 +80,11 @@ void Map::init(bool withActors) {
 		MapFactory::makeWorldMap(*this);
 		name = "world";
 	}
+
+	// Town
+	else if (type == Type::TOWN) {
+		MapFactory::makeTownMap(*this);
+	}
 }
 
 Map::~Map() {
@@ -208,15 +213,15 @@ void Map::createRoom(bool first, int x1, int y1, int x2, int y2, bool withActors
     }
 }
 
-bool Map::hasCaveAt(Actor *owner) const{
+bool Map::hasFeatureAt(Actor *owner, const char featureGlyph) const{
 	for (Actor **iterator = actors.begin();
 		iterator != actors.end();
 		iterator++) {
 		Actor *actor = *iterator;
 		if (actor->x == owner->x && actor->y == owner->y) {
 			// Hack
-			if (actor->ch == '*') {
-				std::cout << "cave: " << actor->x << ", " << actor->y << " owner: " << owner->x << ", " << owner->y << std::endl;
+			if (actor->ch == featureGlyph) {
+				std::cout << featureGlyph << ": " << actor->x << ", " << actor->y << " owner: " << owner->x << ", " << owner->y << std::endl;
 				return true;
 			}
 		}
@@ -224,15 +229,27 @@ bool Map::hasCaveAt(Actor *owner) const{
 	return false;
 }
 
-Actor *Map::getCaveAt(Actor *owner) {
+bool Map::hasFeatureAt(int x, int y, const char featureGlyph) const {
+	for (Actor **iterator = actors.begin();
+		iterator != actors.end();
+		iterator++) {
+		Actor *actor = *iterator;
+		if (actor->x == x && actor->y == y && actor->ch == featureGlyph) {
+			return true;
+		}
+	}
+	return false;
+}
+
+Actor *Map::getFeatureAt(Actor *owner, const char featureGlyph) {
 	for (Actor **iterator = actors.begin();
 		iterator != actors.end();
 		iterator++) {
 		Actor *actor = *iterator;
 		if (actor->x == owner->x && actor->y == owner->y) {
 			// Hack
-			if (actor->ch == '*') {
-				std::cout << "cave: " << actor->x << ", " << actor->y << " owner: " << owner->x << ", " << owner->y << std::endl;
+			if (actor->ch == featureGlyph) {
+				std::cout << featureGlyph << ": " << actor->x << ", " << actor->y << " owner: " << owner->x << ", " << owner->y << std::endl;
 				return actor;
 			}
 		}
