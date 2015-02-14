@@ -2,7 +2,7 @@
 void MapFactory::makeTownMap(Map &map) {
 	// Fill with grass
 	fillWithType(map, Tile::Type::GRASS);
-	placeBoundingWall(map, 5, 5, map.width - 10, map.height - 10);
+	placeBoundingWall(map, 5, 5, map.width - 5, map.height - 5);
 	generateTownBuildings(map);
 }
 void MapFactory::makeWorldMap(Map &map) {
@@ -136,12 +136,12 @@ void MapFactory::fillWithType(Map &map, Tile::Type type) {
 }
 
 void MapFactory::generateTownBuildings(Map &map) {
-	int buildings = 2;
+	int buildings = 8;
 	for (int i = 0; i < buildings; i++) {
 		int x, y;
 		do {
-			x = map.rng->getInt(map.width / 8, map.width - map.width / 8);
-			y = map.rng->getInt(map.height / 8, map.height - map.height / 8);
+			x = map.rng->getInt(6, map.width - 7);
+			y = map.rng->getInt(6, map.height - 7);
 		} while (!checkBuildingPlacement(map, x, y, 3, 3));
 		placeBuilding(map, x, y, 3, 3);
 	}
