@@ -347,6 +347,7 @@ void Map::render() const {
 			if (type != Type::WORLD) {
 				backColor = backColor * (float)((tiles[x + y * width].variation / 10) + 1);
 			}
+			
 	        if ( isInFov(x,y) ) {
 				TCODConsole::root->setChar(x, y, glyph);
 	            TCODConsole::root->setCharBackground(x,y,
@@ -360,6 +361,13 @@ void Map::render() const {
 					backColor);
 				TCODConsole::root->setCharForeground(x, y, foreColor);
 	        }
+
+			// highlight mouse target
+			if (x == engine.mouse.cx && y == engine.mouse.cy) {
+				if (isInFov(x, y) || isExplored(x, y)) {
+					TCODConsole::root->setCharBackground(x, y, TCODColor::red);
+				}
+			}
    	    }
 	}
 }
