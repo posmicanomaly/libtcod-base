@@ -327,9 +327,14 @@ void Map::render() const {
 
 	static const TCODColor lightFore(TCODColor::white);
 	static const TCODColor darkFore(TCODColor::black);
-
-	for (int x=0; x < width; x++) {
-	    for (int y=0; y < height; y++) {
+	int xOffset = engine.player->x - 80 / 2;
+	int yOffset = engine.player->y - 43 / 2;
+	//std::cout << "offsets x: " << xOffset << " y: " << yOffset << std::endl;
+	for (int x = engine.player->x - 40; x <= engine.player->x + 40; x++) {
+		for (int y = engine.player->y - 21; y <= engine.player->y + 21; y++) {
+			if (x < 0 || y < 0 || x >= width || y >= height) {
+				continue;
+			}
 			char glyph = '?';
 			TCODColor backColor = wall;
 			TCODColor foreColor = lightFore;
@@ -349,17 +354,17 @@ void Map::render() const {
 			}
 			
 	        if ( isInFov(x,y) ) {
-				TCODConsole::root->setChar(x, y, glyph);
-	            TCODConsole::root->setCharBackground(x,y,
+				TCODConsole::root->setChar(x - xOffset, y - yOffset, glyph);
+	            TCODConsole::root->setCharBackground(x - xOffset,y - yOffset,
 	                backColor);
-				TCODConsole::root->setCharForeground(x, y, foreColor);
+				TCODConsole::root->setCharForeground(x - xOffset, y - yOffset, foreColor);
 	        } else if ( isExplored(x,y) ) {
 				backColor = backColor * 0.5f;
 				foreColor = foreColor * 0.5f;
-				TCODConsole::root->setChar(x, y, glyph);
-				TCODConsole::root->setCharBackground(x, y,
+				TCODConsole::root->setChar(x - xOffset, y - yOffset, glyph);
+				TCODConsole::root->setCharBackground(x - xOffset, y - yOffset,
 					backColor);
-				TCODConsole::root->setCharForeground(x, y, foreColor);
+				TCODConsole::root->setCharForeground(x - xOffset, y - yOffset, foreColor);
 	        }
 
 			// highlight mouse target

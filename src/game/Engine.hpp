@@ -16,6 +16,10 @@ public :
     int fovRadius;
     int screenWidth;
     int screenHeight;
+	int viewWidth;
+	int viewHeight;
+	int xOffset;
+	int yOffset;
     Gui *gui;
     int level;
 

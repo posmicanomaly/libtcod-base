@@ -40,8 +40,10 @@ Actor::~Actor() {
 }
 
 void Actor::render() const {
-	TCODConsole::root->setChar(x, y, ch);
-	TCODConsole::root->setCharForeground(x, y, col);
+	int xOffset = engine.player->x - 80 / 2;
+	int yOffset = engine.player->y - 43 / 2;
+	TCODConsole::root->setChar(x - xOffset, y - yOffset, ch);
+	TCODConsole::root->setCharForeground(x - xOffset, y - yOffset, col);
 }
 
 void Actor::update() {

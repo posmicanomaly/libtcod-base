@@ -3,9 +3,13 @@
 #include "main.hpp"
 
 static const int WORLD_FOV_RADIUS = 2;
+const int MAP_WIDTH = 200;
+const int MAP_HEIGHT = 200;
+const int VIEW_WIDTH = 80;
+const int VIEW_HEIGHT = 43;
 Engine::Engine(int screenWidth, int screenHeight) : gameStatus(STARTUP),
 	player(NULL),map(NULL),fovRadius(WORLD_FOV_RADIUS),
-	screenWidth(screenWidth),screenHeight(screenHeight),level(1) {
+	screenWidth(screenWidth),screenHeight(screenHeight), viewWidth(VIEW_WIDTH), viewHeight(VIEW_HEIGHT),level(1) {
 	dbglog("LIBTCOD-BASE\nRoguelike Engine\nJesse Pospisil 2015\n-----\n");
 	TCODConsole::setCustomFont("terminal16x16_gs_ro.png", TCOD_FONT_LAYOUT_ASCII_INROW);
     TCODConsole::initRoot(screenWidth,screenHeight,"libtcod-base",false);
@@ -17,14 +21,14 @@ void Engine::init() {
 	// Reset level here?
 	level = 0;
 	fovRadius = WORLD_FOV_RADIUS;
-    map = new Map(80,43, Map::Type::WORLD);
+    map = new Map(MAP_WIDTH,MAP_HEIGHT, Map::Type::WORLD);
     map->init(true);
 
 	// Hack: player doesn't start on up stairs if its the world map, start them in center;
 	int playerStartX, playerStartY;
 	if (map->type == Map::Type::WORLD) {
-		playerStartX = map->width / 2;
-		playerStartY = map->height / 2;
+		playerStartX = 1;
+		playerStartY = 1;
 	}
 	else {
 		playerStartX = map->stairsUp->x;
@@ -77,10 +81,19 @@ void Engine::update() {
 	        }
 	    }
 	}
+	
 }
 
 void Engine::render() {
 	TCODConsole::root->clear();
+	// Update offsets for "viewport"
+	int xOffset = engine.player->x - viewWidth / 2;
+	int yOffset = engine.player->y - viewHeight / 2;
+	std::cout << "view width height: " << viewWidth << ", " << viewHeight << std::endl;
+
+	// Skew mouse
+	//mouse.cx -= xOffset;
+	//mouse.cy -= yOffset;
 	// draw the map
 	map->render();
 	// draw the actors
@@ -96,6 +109,7 @@ void Engine::render() {
 	player->render();
 	// show the player's stats
 	gui->render();
+
 }
 
 void Engine::sendToBack(Actor *actor) {
@@ -248,7 +262,7 @@ void Engine::changeLevel(signed int direction, Actor *actor) {
 
 	// Create a new map
 	
-	map = new Map(80, 43, nextMapType);
+	map = new Map(MAP_WIDTH, MAP_HEIGHT, nextMapType);
 	
 	// If the map doesn't exist at the next level, create a new one
 	if (!mapExists(level, nextMapName)) {
