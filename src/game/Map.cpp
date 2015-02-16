@@ -140,14 +140,14 @@ void Map::addMonster(int x, int y) {
 void Map::addItem(int x, int y) {
 	TCODRandom *rng=TCODRandom::getInstance();
 	int dice = rng->getInt(0,100);
-	if ( dice < 70 ) {
+	if ( dice < 10 ) {
 		// create a health potion
 		Actor *healthPotion=new Actor(x,y,'!',"health potion",
 			TCODColor::violet);
 		healthPotion->blocks=false;
 		healthPotion->pickable=new Healer(4);
 		actors.push(healthPotion);
-	} else if ( dice < 70+10 ) {
+	} else if ( dice < 10+10 ) {
 		// create a scroll of lightning bolt 
 		Actor *scrollOfLightningBolt=new Actor(x,y,'#',"scroll of lightning bolt",
 			TCODColor::lightYellow);
@@ -327,11 +327,13 @@ void Map::render() const {
 
 	static const TCODColor lightFore(TCODColor::white);
 	static const TCODColor darkFore(TCODColor::black);
-	int xOffset = engine.player->x - 80 / 2;
-	int yOffset = engine.player->y - 43 / 2;
+	int xOffset = engine.xOffset;
+	int yOffset = engine.yOffset;
+	int skewX;
+	int skewY;
 	//std::cout << "offsets x: " << xOffset << " y: " << yOffset << std::endl;
-	for (int x = engine.player->x - 40; x <= engine.player->x + 40; x++) {
-		for (int y = engine.player->y - 21; y <= engine.player->y + 21; y++) {
+	for (int x = engine.player->x - engine.VIEW_WIDTH / 2; x <= engine.player->x + engine.VIEW_WIDTH / 2; x++) {
+		for (int y = engine.player->y - engine.VIEW_HEIGHT / 2; y <= engine.player->y + engine.VIEW_HEIGHT / 2; y++) {
 			if (x < 0 || y < 0 || x >= width || y >= height) {
 				continue;
 			}
@@ -353,26 +355,25 @@ void Map::render() const {
 				backColor = backColor * (float)((tiles[x + y * width].variation / 10) + 1);
 			}
 			
+			/*
+			Skew X and Y based on the offset for drawing
+			*/
+			skewX = x;
+			skewY = y;
+			engine.translateToView(skewX, skewY);
 	        if ( isInFov(x,y) ) {
-				TCODConsole::root->setChar(x - xOffset, y - yOffset, glyph);
-	            TCODConsole::root->setCharBackground(x - xOffset,y - yOffset,
+				TCODConsole::root->setChar(skewX, skewY, glyph);
+				TCODConsole::root->setCharBackground(skewX, skewY,
 	                backColor);
-				TCODConsole::root->setCharForeground(x - xOffset, y - yOffset, foreColor);
+				TCODConsole::root->setCharForeground(skewX, skewY, foreColor);
 	        } else if ( isExplored(x,y) ) {
 				backColor = backColor * 0.5f;
 				foreColor = foreColor * 0.5f;
-				TCODConsole::root->setChar(x - xOffset, y - yOffset, glyph);
-				TCODConsole::root->setCharBackground(x - xOffset, y - yOffset,
+				TCODConsole::root->setChar(skewX, skewY, glyph);
+				TCODConsole::root->setCharBackground(skewX, skewY,
 					backColor);
-				TCODConsole::root->setCharForeground(x - xOffset, y - yOffset, foreColor);
+				TCODConsole::root->setCharForeground(skewX, skewY, foreColor);
 	        }
-
-			// highlight mouse target
-			if (x == engine.mouse.cx && y == engine.mouse.cy) {
-				if (isInFov(x, y) || isExplored(x, y)) {
-					TCODConsole::root->setCharBackground(x, y, TCODColor::red);
-				}
-			}
    	    }
 	}
 }

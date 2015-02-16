@@ -16,8 +16,12 @@ public :
     int fovRadius;
     int screenWidth;
     int screenHeight;
-	int viewWidth;
-	int viewHeight;
+	const int VIEW_WIDTH = 80;
+	const int VIEW_HEIGHT = 43;
+	int mouse_winX;
+	int mouse_winY;
+	int mouse_mapX;
+	int mouse_mapY;
 	int xOffset;
 	int yOffset;
     Gui *gui;
@@ -43,6 +47,8 @@ public :
    	
 	bool mapExists(int level, std::string mapName);
 	void clearMapFiles();
+
+	void translateToView(int &x, int &y);
 	
 	// Defined in Persistent.cpp
 	void load(bool pause = false);

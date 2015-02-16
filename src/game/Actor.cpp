@@ -40,10 +40,14 @@ Actor::~Actor() {
 }
 
 void Actor::render() const {
-	int xOffset = engine.player->x - 80 / 2;
-	int yOffset = engine.player->y - 43 / 2;
-	TCODConsole::root->setChar(x - xOffset, y - yOffset, ch);
-	TCODConsole::root->setCharForeground(x - xOffset, y - yOffset, col);
+	/*
+	Skew X and Y based on the offset for drawing
+	*/
+	int skewX = x;
+	int skewY = y;
+	engine.translateToView(skewX, skewY);
+	TCODConsole::root->setChar(skewX, skewY, ch);
+	TCODConsole::root->setCharForeground(skewX, skewY, col);
 }
 
 void Actor::update() {

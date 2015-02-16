@@ -96,7 +96,8 @@ Gui::Message::~Message() {
 }
 
 void Gui::renderMouseLook() {
-	if (! engine.map->isInFov(engine.mouse.cx, engine.mouse.cy)) {
+	
+	if (! engine.map->isInFov(engine.mouse_mapX, engine.mouse_mapY)) {
 		// if mouse is out of fov, nothing to render
 		return;
 	}
@@ -104,8 +105,12 @@ void Gui::renderMouseLook() {
 	bool first=true;
 	for (Actor **it=engine.map->actors.begin(); it != engine.map->actors.end(); it++) {
 		Actor *actor=*it;
+		// Translate actor x y?
+		int skewX = actor->x;
+		int skewY = actor->y;
+		//engine.translateToView(skewX, skewY);
 		// find actors under the mouse cursor
-		if (actor->x == engine.mouse.cx && actor->y == engine.mouse.cy ) {
+		if (actor->x == engine.mouse_mapX && actor->y == engine.mouse_mapY ) {
 			if (! first) {
 				strcat_s(buf,", ");
 			} else {

@@ -5,30 +5,30 @@
 static const int WORLD_FOV_RADIUS = 2;
 const int MAP_WIDTH = 200;
 const int MAP_HEIGHT = 200;
-const int VIEW_WIDTH = 80;
-const int VIEW_HEIGHT = 43;
+
 Engine::Engine(int screenWidth, int screenHeight) : gameStatus(STARTUP),
-	player(NULL),map(NULL),fovRadius(WORLD_FOV_RADIUS),
-	screenWidth(screenWidth),screenHeight(screenHeight), viewWidth(VIEW_WIDTH), viewHeight(VIEW_HEIGHT),level(1) {
+player(NULL), map(NULL), fovRadius(WORLD_FOV_RADIUS),
+screenWidth(screenWidth), screenHeight(screenHeight), level(1) {
 	dbglog("LIBTCOD-BASE\nRoguelike Engine\nJesse Pospisil 2015\n-----\n");
 	TCODConsole::setCustomFont("terminal16x16_gs_ro.png", TCOD_FONT_LAYOUT_ASCII_INROW);
-    TCODConsole::initRoot(screenWidth,screenHeight,"libtcod-base",false);
-    gui = new Gui();
+	TCODConsole::initRoot(screenWidth, screenHeight, "libtcod-base", false);
+	gui = new Gui();
 }
 
-void Engine::init() {  
+void Engine::init() {
 	std::cout << "Engine::init()" << std::endl;
 	// Reset level here?
 	level = 0;
 	fovRadius = WORLD_FOV_RADIUS;
-    map = new Map(MAP_WIDTH,MAP_HEIGHT, Map::Type::WORLD);
-    map->init(true);
+	map = new Map(MAP_WIDTH, MAP_HEIGHT, Map::Type::WORLD);
+	map->init(true);
 
 	// Hack: player doesn't start on up stairs if its the world map, start them in center;
 	int playerStartX, playerStartY;
 	if (map->type == Map::Type::WORLD) {
-		playerStartX = 1;
-		playerStartY = 1;
+		playerStartX = map->width / 2;
+		playerStartY = map->height / 2;
+		
 	}
 	else {
 		playerStartX = map->stairsUp->x;
@@ -43,15 +43,15 @@ void Engine::init() {
 	player->container = new Container(26);
 	map->actors.push(player);
 
-    gui->message(TCODColor::red, 
-    	"Welcome stranger!\nPrepare to perish in the Tombs of the Ancient Kings.");
-    gameStatus=STARTUP;
+	gui->message(TCODColor::red,
+		"Welcome stranger!\nPrepare to perish in the Tombs of the Ancient Kings.");
+	gameStatus = STARTUP;
 }
 
 Engine::~Engine() {
 	std::cout << "Engine::~Engine()" << std::endl;
 	term();
-    delete gui;
+	delete gui;
 }
 
 void Engine::term() {
@@ -59,70 +59,88 @@ void Engine::term() {
 	if (map) {
 		map->actors.clearAndDelete();
 		if (map) delete map;
-	}	
-    gui->clear();
+	}
+	gui->clear();
 }
 
 void Engine::update() {
-	if ( gameStatus == STARTUP ) map->computeFov();
-   	gameStatus=IDLE;
-    TCODSystem::checkForEvent(TCOD_EVENT_KEY_PRESS|TCOD_EVENT_MOUSE,&lastKey,&mouse);
-    if ( lastKey.vk == TCODK_ESCAPE ) {
-    	save();
-    	load(true);
-    }
-    player->update();
-    if ( gameStatus == NEW_TURN ) {
-	    for (Actor **iterator=map->actors.begin(); iterator != map->actors.end();
-	        iterator++) {
-	        Actor *actor=*iterator;
-	        if ( actor != player ) {
-	            actor->update();
-	        }
-	    }
+
+
+	if (gameStatus == STARTUP) map->computeFov();
+	gameStatus = IDLE;
+	TCODSystem::checkForEvent(TCOD_EVENT_KEY_PRESS | TCOD_EVENT_MOUSE, &lastKey, &mouse);
+	if (lastKey.vk == TCODK_ESCAPE) {
+		save();
+		load(true);
+	}
+	// Set out important mouse information
+	mouse_mapX = mouse.cx + xOffset;
+	mouse_mapY = mouse.cy + yOffset;
+	mouse_winX = mouse.cx;
+	mouse_winY = mouse.cy;
+	if (mouse.lbutton_pressed) {
+		std::cout << "click: " << mouse.cx << ", " << mouse.cy << std::endl;
+		std::cout << "to map-> " << mouse_mapX << ", " << mouse_mapY << std::endl;
 	}
 	
+	player->update();
+	if (gameStatus == NEW_TURN) {
+		for (Actor **iterator = map->actors.begin(); iterator != map->actors.end();
+			iterator++) {
+			Actor *actor = *iterator;
+			if (actor != player) {
+				actor->update();
+			}
+		}
+	}
 }
 
 void Engine::render() {
 	TCODConsole::root->clear();
-	// Update offsets for "viewport"
-	int xOffset = engine.player->x - viewWidth / 2;
-	int yOffset = engine.player->y - viewHeight / 2;
-	std::cout << "view width height: " << viewWidth << ", " << viewHeight << std::endl;
 
-	// Skew mouse
-	//mouse.cx -= xOffset;
-	//mouse.cy -= yOffset;
+	// Update offsets for "viewport"
+	// Can't call this in update because it makes the player jumpy
+	xOffset = engine.player->x - VIEW_WIDTH / 2;
+	yOffset = engine.player->y - VIEW_HEIGHT / 2;
+	
 	// draw the map
 	map->render();
+
 	// draw the actors
-	for (Actor **iterator=map->actors.begin();
-	    iterator != map->actors.end(); iterator++) {
-		Actor *actor=*iterator;
-		if ( actor != player 
-			&& ((!actor->fovOnly && map->isExplored(actor->x,actor->y))
-				|| map->isInFov(actor->x,actor->y)) ) {
-	        actor->render();
-	    }
+	for (Actor **iterator = map->actors.begin();
+		iterator != map->actors.end(); iterator++) {
+		Actor *actor = *iterator;
+		if (actor != player
+			&& ((!actor->fovOnly && map->isExplored(actor->x, actor->y))
+			|| map->isInFov(actor->x, actor->y))) {
+			actor->render();
+		}
 	}
 	player->render();
+
 	// show the player's stats
 	gui->render();
 
+	// highlight mouse target
+	TCODConsole::root->setCharBackground(mouse_winX, mouse_winY, TCODColor::red);
+}
+
+void Engine::translateToView(int &x, int &y) {
+	x -= xOffset;
+	y -= yOffset;
 }
 
 void Engine::sendToBack(Actor *actor) {
 	map->actors.remove(actor);
-	map->actors.insertBefore(actor,0);
+	map->actors.insertBefore(actor, 0);
 }
 
 Actor *Engine::getActor(int x, int y) const {
-	for (Actor **iterator=map->actors.begin();
-	    iterator != map->actors.end(); iterator++) {
-		Actor *actor=*iterator;
-		if ( actor->x == x && actor->y ==y && actor->destructible
-			&& ! actor->destructible->isDead()) {
+	for (Actor **iterator = map->actors.begin();
+		iterator != map->actors.end(); iterator++) {
+		Actor *actor = *iterator;
+		if (actor->x == x && actor->y == y && actor->destructible
+			&& !actor->destructible->isDead()) {
 			return actor;
 		}
 	}
@@ -130,17 +148,17 @@ Actor *Engine::getActor(int x, int y) const {
 }
 
 Actor *Engine::getClosestMonster(int x, int y, float range) const {
-	Actor *closest=NULL;
-	float bestDistance=1E6f;
-	for (Actor **iterator=map->actors.begin();
-	    iterator != map->actors.end(); iterator++) {
-		Actor *actor=*iterator;
-		if ( actor != player && actor->destructible 
-			&& !actor->destructible->isDead() ) {
-			float distance=actor->getDistance(x,y);
-			if ( distance < bestDistance && ( distance <= range || range == 0.0f ) ) {
-				bestDistance=distance;
-				closest=actor;
+	Actor *closest = NULL;
+	float bestDistance = 1E6f;
+	for (Actor **iterator = map->actors.begin();
+		iterator != map->actors.end(); iterator++) {
+		Actor *actor = *iterator;
+		if (actor != player && actor->destructible
+			&& !actor->destructible->isDead()) {
+			float distance = actor->getDistance(x, y);
+			if (distance < bestDistance && (distance <= range || range == 0.0f)) {
+				bestDistance = distance;
+				closest = actor;
 			}
 		}
 	}
@@ -148,29 +166,41 @@ Actor *Engine::getClosestMonster(int x, int y, float range) const {
 }
 
 bool Engine::pickATile(int *x, int *y, float maxRange) {
-	while ( !TCODConsole::isWindowClosed() ) {
+	while (!TCODConsole::isWindowClosed()) {
 		render();
+		
 		// highlight the possible range
-		for (int cx=0; cx < map->width; cx++) {
-			for (int cy=0; cy < map->height; cy++) {
-				if ( map->isInFov(cx,cy)
-					&& ( maxRange == 0 || player->getDistance(cx,cy) <= maxRange) ) {
-					TCODColor col=TCODConsole::root->getCharBackground(cx,cy);
+		for (int cx = 0; cx < map->width; cx++) {
+			for (int cy = 0; cy < map->height; cy++) {
+				if (map->isInFov(cx, cy)
+					&& (maxRange == 0 || player->getDistance(cx, cy) <= maxRange)) {
+					int skewX = cx;
+					int skewY = cy;
+					engine.translateToView(skewX, skewY);
+					TCODColor col = TCODConsole::root->getCharBackground(skewX, skewY);
 					col = col * 1.2f;
-					TCODConsole::root->setCharBackground(cx,cy,col);
+					TCODConsole::root->setCharBackground(skewX, skewY, col);
 				}
 			}
 		}
-		TCODSystem::checkForEvent(TCOD_EVENT_KEY_PRESS|TCOD_EVENT_MOUSE,&lastKey,&mouse);
-		if ( map->isInFov(mouse.cx,mouse.cy)
-			&& ( maxRange == 0 || player->getDistance(mouse.cx,mouse.cy) <= maxRange )) {
-			TCODConsole::root->setCharBackground(mouse.cx,mouse.cy,TCODColor::white);
-			if ( mouse.lbutton_pressed ) {
-				*x=mouse.cx;
-				*y=mouse.cy;
+		TCODSystem::checkForEvent(TCOD_EVENT_KEY_PRESS | TCOD_EVENT_MOUSE, &lastKey, &mouse);
+		// Set out important mouse information
+		mouse_mapX = mouse.cx + xOffset;
+		mouse_mapY = mouse.cy + yOffset;
+		mouse_winX = mouse.cx;
+		mouse_winY = mouse.cy;
+		
+		if (map->isInFov(mouse_mapX, mouse_mapY)
+			&& (maxRange == 0 || player->getDistance(mouse_mapX, mouse_mapY) <= maxRange)) {
+			TCODConsole::root->setCharBackground(mouse_winX, mouse_winY, TCODColor::white);
+			if (mouse.lbutton_pressed) {
+				std::cout << "clicked: " << mouse_mapX << ", " << mouse_mapY << std::endl;
+				std::cout << "player: " << player->x << ", " << player->y << std::endl;
+				*x = mouse_mapX;
+				*y = mouse_mapY;
 				return true;
 			}
-		} 
+		}
 		if (mouse.rbutton_pressed || lastKey.vk != TCODK_NONE) {
 			return false;
 		}
@@ -261,16 +291,16 @@ void Engine::changeLevel(signed int direction, Actor *actor) {
 	}
 
 	// Create a new map
-	
+
 	map = new Map(MAP_WIDTH, MAP_HEIGHT, nextMapType);
-	
+
 	// If the map doesn't exist at the next level, create a new one
 	if (!mapExists(level, nextMapName)) {
 		map->init(true);
 		map->name = nextMapName;
 	}
 	// Otherwise load the map from file
-	else {		
+	else {
 		map->load(level, nextMapName);
 	}
 	// Add the player, so it can be deleted and not leak memory
@@ -310,7 +340,7 @@ void Engine::changeLevel(signed int direction, Actor *actor) {
 			player->x = map->stairs->x;
 			player->y = map->stairs->y;
 		}
-	}	
+	}
 
 	// Last step, set the engine FoV in case its world
 	if (map->type == Map::Type::WORLD) {
@@ -324,7 +354,7 @@ void Engine::changeLevel(signed int direction, Actor *actor) {
 
 bool Engine::mapExists(int level, std::string mapName) {
 	char fileName[64];
-	sprintf_s(fileName, "%s/%s.%d", "save",mapName.c_str(), level);
+	sprintf_s(fileName, "%s/%s.%d", "save", mapName.c_str(), level);
 	return TCODSystem::fileExists(fileName);
 }
 
