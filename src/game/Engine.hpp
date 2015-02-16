@@ -30,7 +30,7 @@ public :
     Engine(int screenWidth, int screenHeight);
     ~Engine();
 	void init();
-    
+	void translateMouseToView();
 	void update();
     void render();
     

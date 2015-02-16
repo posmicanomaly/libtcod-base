@@ -28,7 +28,7 @@ void Engine::init() {
 	if (map->type == Map::Type::WORLD) {
 		playerStartX = map->width / 2;
 		playerStartY = map->height / 2;
-		
+
 	}
 	else {
 		playerStartX = map->stairsUp->x;
@@ -74,15 +74,12 @@ void Engine::update() {
 		load(true);
 	}
 	// Set out important mouse information
-	mouse_mapX = mouse.cx + xOffset;
-	mouse_mapY = mouse.cy + yOffset;
-	mouse_winX = mouse.cx;
-	mouse_winY = mouse.cy;
+	translateMouseToView();
 	if (mouse.lbutton_pressed) {
 		std::cout << "click: " << mouse.cx << ", " << mouse.cy << std::endl;
 		std::cout << "to map-> " << mouse_mapX << ", " << mouse_mapY << std::endl;
 	}
-	
+
 	player->update();
 	if (gameStatus == NEW_TURN) {
 		for (Actor **iterator = map->actors.begin(); iterator != map->actors.end();
@@ -94,7 +91,13 @@ void Engine::update() {
 		}
 	}
 }
-
+void Engine::translateMouseToView() {
+	// Set out important mouse information
+	mouse_mapX = mouse.cx + xOffset;
+	mouse_mapY = mouse.cy + yOffset;
+	mouse_winX = mouse.cx;
+	mouse_winY = mouse.cy;
+}
 void Engine::render() {
 	TCODConsole::root->clear();
 
@@ -102,7 +105,7 @@ void Engine::render() {
 	// Can't call this in update because it makes the player jumpy
 	xOffset = engine.player->x - VIEW_WIDTH / 2;
 	yOffset = engine.player->y - VIEW_HEIGHT / 2;
-	
+
 	// draw the map
 	map->render();
 
@@ -168,7 +171,7 @@ Actor *Engine::getClosestMonster(int x, int y, float range) const {
 bool Engine::pickATile(int *x, int *y, float maxRange) {
 	while (!TCODConsole::isWindowClosed()) {
 		render();
-		
+
 		// highlight the possible range
 		for (int cx = 0; cx < map->width; cx++) {
 			for (int cy = 0; cy < map->height; cy++) {
@@ -184,12 +187,9 @@ bool Engine::pickATile(int *x, int *y, float maxRange) {
 			}
 		}
 		TCODSystem::checkForEvent(TCOD_EVENT_KEY_PRESS | TCOD_EVENT_MOUSE, &lastKey, &mouse);
-		// Set out important mouse information
-		mouse_mapX = mouse.cx + xOffset;
-		mouse_mapY = mouse.cy + yOffset;
-		mouse_winX = mouse.cx;
-		mouse_winY = mouse.cy;
-		
+		// Set mouse info
+		translateMouseToView();
+
 		if (map->isInFov(mouse_mapX, mouse_mapY)
 			&& (maxRange == 0 || player->getDistance(mouse_mapX, mouse_mapY) <= maxRange)) {
 			TCODConsole::root->setCharBackground(mouse_winX, mouse_winY, TCODColor::white);
