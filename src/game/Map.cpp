@@ -289,6 +289,9 @@ bool Map::canWalk(int x, int y) const {
 }
  
 bool Map::isExplored(int x, int y) const {
+	if (x < 0 || x >= width || y < 0 || y >= height) {
+		return false;
+	}
     return tiles[x+y*width].explored;
 }
 
@@ -312,6 +315,10 @@ bool Map::isInFov(int x, int y) const {
 void Map::computeFov() {
     map->computeFov(engine.player->x,engine.player->y,
         engine.fovRadius);
+}
+
+void Map::setTileEffect(int x, int y, Tile::Effect effect) {
+	tiles[x + y * width].effect = effect;
 }
 
 void Map::render() const {
@@ -361,6 +368,9 @@ void Map::render() const {
 			skewX = x;
 			skewY = y;
 			engine.translateToView(skewX, skewY);
+			if (tiles[x + y * width].effect == Tile::Effect::SCORCHED) {
+				backColor = TCODColor::darkestOrange;
+			}
 	        if ( isInFov(x,y) ) {
 				TCODConsole::root->setChar(skewX, skewY, glyph);
 				TCODConsole::root->setCharBackground(skewX, skewY,

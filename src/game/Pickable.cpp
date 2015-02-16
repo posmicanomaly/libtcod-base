@@ -103,6 +103,7 @@ bool Fireball::use(Actor *owner, Actor *wearer) {
 			engine.gui->message(TCODColor::orange,"The %s gets burned for %g hit points.",
 				actor->name,damage);
 			actor->destructible->takeDamage(actor,damage);
+			engine.map->setTileEffect(actor->x, actor->y, Tile::Effect::SCORCHED);
 		}
 	}
 	return Pickable::use(owner,wearer);

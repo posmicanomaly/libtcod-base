@@ -4,7 +4,10 @@ struct Tile {
 	enum Type {
 		FLOOR, WALL, GRASS, FOREST, MOUNTAIN, WATER
 	} type;
-    Tile() : explored(false), type(WALL) {}
+	enum Effect {
+		NONE, SCORCHED, BLOODY
+	} effect;
+    Tile() : explored(false), type(WALL), effect(NONE) {}
 };
  
 class Map : public Persistent {
@@ -40,6 +43,7 @@ public :
 	////////////////////////
 	void save();
  	void init(bool withActors);
+	void setTileEffect(int x, int y, Tile::Effect effect);
 	
 protected :
     Tile *tiles;
