@@ -57,7 +57,7 @@ void Map::init(bool withActors) {
 	// Give all tiles a variation to make them appear slightly different from each other
 	// (more visually appealing, no affect on gameplay)
 	for (int i = 0; i < width * height; i++) {
-		tiles[i].variation = rng->getInt(1, 32);
+		tiles[i].variation = rng->getInt(10,20);
 	}
 	/////////////////////////////////////////////////////////////////////////////////////
     map = new TCODMap(width,height);
