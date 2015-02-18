@@ -221,7 +221,7 @@ bool Map::hasFeatureAt(Actor *owner, const char featureGlyph) const{
 		if (actor->x == owner->x && actor->y == owner->y) {
 			// Hack
 			if (actor->ch == featureGlyph) {
-				std::cout << featureGlyph << ": " << actor->x << ", " << actor->y << " owner: " << owner->x << ", " << owner->y << std::endl;
+				//std::cout << featureGlyph << ": " << actor->x << ", " << actor->y << " owner: " << owner->x << ", " << owner->y << std::endl;
 				return true;
 			}
 		}
@@ -249,7 +249,7 @@ Actor *Map::getFeatureAt(Actor *owner, const char featureGlyph) {
 		if (actor->x == owner->x && actor->y == owner->y) {
 			// Hack
 			if (actor->ch == featureGlyph) {
-				std::cout << featureGlyph << ": " << actor->x << ", " << actor->y << " owner: " << owner->x << ", " << owner->y << std::endl;
+				//std::cout << featureGlyph << ": " << actor->x << ", " << actor->y << " owner: " << owner->x << ", " << owner->y << std::endl;
 				return actor;
 			}
 		}
@@ -323,17 +323,44 @@ void Map::setTileEffect(int x, int y, Tile::Effect effect) {
 
 void Map::render() const {
 	/*
+	Reference:
+		// World map
+			PLAIN, FOREST, MOUNTAIN, JUNGLE, DESERT, GLACIER, TUNDRA, OCEAN, LAKE, SWAMP,
+		// Area maps
+			FLOOR, WALL, GRASS, TREE, WATER_SHALLOW, WATER_DEEP
+	*/
+	/*
 	If using tile variation to affect the final color, using 255 will prevent that from occuring
 	*/
-    static const TCODColor wall(TCODColor(40, 30, 30));
+	// World
+	static const TCODColor PLAIN(TCODColor::lightGreen);
+	static const TCODColor FOREST(TCODColor::darkGreen);
+	static const TCODColor MOUNTAIN(TCODColor::darkGrey);
+	static const TCODColor JUNGLE(TCODColor::green);
+	static const TCODColor DESERT(TCODColor::lightestOrange);
+	static const TCODColor GLACIER(TCODColor::lightestBlue);
+	static const TCODColor TUNDRA(TCODColor::desaturatedGreen);
+	static const TCODColor OCEAN(TCODColor::darkerBlue);
+	static const TCODColor LAKE(TCODColor::blue);
+	static const TCODColor SWAMP(TCODColor::darkestGreen);
+
+	// Area
+	static const TCODColor WALL(TCODColor::grey);
+	static const TCODColor FLOOR(TCODColor::white);
+	static const TCODColor GRASS(TCODColor::green);
+	static const TCODColor TREE(TCODColor::darkerGreen);
+	static const TCODColor WATER_SHALLOW(TCODColor::lightBlue);
+	static const TCODColor WATER_DEEP(TCODColor::blue);
+
+    /*static const TCODColor wall(TCODColor(40, 30, 30));
 	static const TCODColor floor(TCODColor(5, 5, 10));
 	static const TCODColor grass(TCODColor(0, 40, 0));
 	static const TCODColor forest(TCODColor(20, 70, 0));
 	static const TCODColor mountain(TCODColor(100, 50, 0));
-	static const TCODColor water(TCODColor(0, 0, 100));
+	static const TCODColor water(TCODColor(0, 0, 100));*/
 
-	static const TCODColor lightFore(TCODColor::white);
-	static const TCODColor darkFore(TCODColor::black);
+	/*static const TCODColor lightFore(TCODColor::white);
+	static const TCODColor darkFore(TCODColor::black);*/
 	int xOffset = engine.xOffset;
 	int yOffset = engine.yOffset;
 	int skewX;
@@ -345,21 +372,72 @@ void Map::render() const {
 				continue;
 			}
 			char glyph = '?';
-			TCODColor backColor = wall;
-			TCODColor foreColor = lightFore;
-			switch (tiles[x + y * width].type) {
+			TCODColor backColor = TCODColor::black;
+			TCODColor foreColor = TCODColor::azure;
+
+			Tile *tile = &tiles[x + y * width];
+
+			if (engine.map->type == Map::Type::WORLD) {
+				switch (tile->type) {
+				case Tile::Type::PLAIN:
+					glyph = '.'; backColor = backColor; foreColor = PLAIN; break;
+				case Tile::Type::FOREST:
+					glyph = '&'; backColor = backColor; foreColor = FOREST; break;
+				case Tile::Type::MOUNTAIN:
+					glyph = '^'; backColor = backColor; foreColor = MOUNTAIN; break;
+				case Tile::Type::JUNGLE:
+					glyph = '7'; backColor = backColor; foreColor = JUNGLE; break;
+				case Tile::Type::DESERT:
+					glyph = '~'; backColor = backColor; foreColor = DESERT; break;
+				case Tile::Type::GLACIER:
+					glyph = '='; backColor = backColor; foreColor = GLACIER; break;
+				case Tile::Type::TUNDRA:
+					glyph = ','; backColor = backColor; foreColor = TUNDRA; break;
+				case Tile::Type::OCEAN:
+					glyph = '='; backColor = backColor; foreColor = OCEAN; break;
+				case Tile::Type::LAKE:
+					glyph = '~'; backColor = backColor; foreColor = LAKE; break;
+				case Tile::Type::SWAMP:
+					glyph = '~'; backColor = backColor; foreColor = SWAMP; break;
+				default:
+					glyph = '?'; backColor = backColor; foreColor = PLAIN; break;
+				}
+			} 
+			else {
+				switch (tile->type) {
+				case Tile::Type::FLOOR:
+					glyph = '.'; backColor = backColor; foreColor = FLOOR; break;
+				case Tile::Type::WALL:
+					glyph = '#'; backColor = backColor; foreColor = WALL; break;
+				case Tile::Type::GRASS:
+					glyph = '"'; backColor = backColor; foreColor = GRASS; break;
+				case Tile::Type::TREE:
+					glyph = 'T'; backColor = backColor; foreColor = TREE; break;
+				case Tile::Type::WATER_SHALLOW:
+					glyph = '='; backColor = backColor; foreColor = WATER_SHALLOW; break;
+				case Tile::Type::WATER_DEEP:
+					glyph = '='; backColor = backColor; foreColor = WATER_DEEP; break;
+				default:
+					glyph = '!'; backColor = backColor; foreColor = FLOOR; break;
+				}
+			}
+
+			// Set back color as a darker version of foreColor?
+			backColor = foreColor * 0.1;
+
+			/*switch (tiles[x + y * width].type) {
 			case Tile::Type::FLOOR:	glyph = '.'; backColor = floor; foreColor = lightFore; break;
 			case Tile::Type::WALL:	glyph = '#'; backColor = wall; foreColor = darkFore; break;
 			case Tile::Type::GRASS:	glyph = '"'; backColor = grass; foreColor = darkFore; break;
 			case Tile::Type::FOREST: glyph = '&'; backColor = forest; foreColor = darkFore; break;
 			case Tile::Type::MOUNTAIN: glyph = '^'; backColor = mountain; foreColor = darkFore; break;
 			case Tile::Type::WATER: glyph = '~'; backColor = water; foreColor = darkFore; break;
-			}
+			}*/
 			// If its not the world map
 			// Adjust brightness based on variation
 			// variation is currently set to be 1 - 10, so this gives us variation / 10 + 1, 10 would be twice the brightness
 			if (type != Type::WORLD) {
-				backColor = backColor * (float)((tiles[x + y * width].variation / 10) + 1);
+				//backColor = backColor * (float)((tiles[x + y * width].variation / 10) + 1);
 			}
 			
 			/*
@@ -368,6 +446,7 @@ void Map::render() const {
 			skewX = x;
 			skewY = y;
 			engine.translateToView(skewX, skewY);
+
 			if (tiles[x + y * width].effect == Tile::Effect::SCORCHED) {
 				backColor = TCODColor::darkestOrange;
 			}
@@ -377,8 +456,10 @@ void Map::render() const {
 	                backColor);
 				TCODConsole::root->setCharForeground(skewX, skewY, foreColor);
 	        } else if ( isExplored(x,y) ) {
-				backColor = backColor * 0.5f;
-				foreColor = foreColor * 0.5f;
+				if (type != Map::Type::WORLD) {
+					backColor = backColor * 0.5f;
+					foreColor = foreColor * 0.5f;
+				}
 				TCODConsole::root->setChar(skewX, skewY, glyph);
 				TCODConsole::root->setCharBackground(skewX, skewY,
 					backColor);

@@ -6,10 +6,22 @@ void MapFactory::makeTownMap(Map &map) {
 	generateTownBuildings(map);
 }
 void MapFactory::makeWorldMap(Map &map) {
-	fillWithType(map, Tile::Type::GRASS);
-	addFeatureSeeds(map, Tile::Type::FOREST, map.rng->getInt(10, 50));
-	addFeatureSeeds(map, Tile::Type::MOUNTAIN, map.rng->getInt(20, 100));
-	addFeatureSeeds(map, Tile::Type::WATER, map.rng->getInt(10, 50));
+	fillWithType(map, Tile::Type::OCEAN);
+	for (int i = Tile::Type::PLAIN; i < Tile::Type::SWAMP; i++) {
+		if (i == Tile::Type::OCEAN || i == Tile::Type::GLACIER) {
+			continue;
+		}
+		addFeatureSeeds(map, static_cast<Tile::Type>(i), map.rng->getInt(400, 400));
+	}
+	/*addFeatureSeeds(map, Tile::Type::PLAIN, map.rng->getInt(100, 100));
+	addFeatureSeeds(map, Tile::Type::FOREST, map.rng->getInt(30, 100));
+	addFeatureSeeds(map, Tile::Type::MOUNTAIN, map.rng->getInt(30, 100));
+	addFeatureSeeds(map, Tile::Type::LAKE, map.rng->getInt(30, 100));
+	addFeatureSeeds(map, Tile::Type::DESERT, map.rng->getInt(30, 100));
+	addFeatureSeeds(map, Tile::Type::GLACIER, map.rng->getInt(30, 100));
+	addFeatureSeeds(map, Tile::Type::SWAMP, map.rng->getInt(30, 100));
+	addFeatureSeeds(map, Tile::Type::OCEAN, map.rng->getInt(30, 100));
+	addFeatureSeeds(map, Tile::Type::JUNGLE, map.rng->getInt(30, 100));*/
 	// set the map properties for mountains
 	for (int x = 0; x < map.width; x++) {
 		for (int y = 0; y < map.height; y++) {
@@ -45,7 +57,7 @@ void MapFactory::makeWorldMap(Map &map) {
 		cave->blocks = false;
 		map.actors.push(cave);
 		// Make the tile walkable
-		map.tiles[x + y * map.width].type = Tile::Type::GRASS;
+		map.tiles[x + y * map.width].type = Tile::Type::PLAIN;
 		map.map->setProperties(x, y, true, true);
 	}
 	// Add some towns
@@ -60,7 +72,7 @@ void MapFactory::makeWorldMap(Map &map) {
 			x = map.rng->getInt(1, map.width - 1);
 			y = map.rng->getInt(1, map.height - 1);
 			tile = &map.tiles[x + y * map.width];
-		} while (tile->type != Tile::Type::GRASS && map.hasFeatureAt(x, y, '*'));
+		} while (tile->type != Tile::Type::PLAIN && map.hasFeatureAt(x, y, '*'));
 		std::string name = names[i];
 
 		Actor *town = new Actor(x, y, 'O', name.c_str(), TCODColor::white);
@@ -68,7 +80,7 @@ void MapFactory::makeWorldMap(Map &map) {
 		town->blocks = false;
 		map.actors.push(town);
 		// Make the tile walkable
-		map.tiles[x + y * map.width].type = Tile::Type::GRASS;
+		map.tiles[x + y * map.width].type = Tile::Type::PLAIN;
 		map.map->setProperties(x, y, true, true);
 	}
 }
@@ -120,8 +132,6 @@ void MapFactory::fillWithType(Map &map, Tile::Type type) {
 	bool walkable = true;
 	switch (type) {
 	case Tile::Type::MOUNTAIN: walkable = false; break;
-	case Tile::Type::GRASS: break;
-	case Tile::Type::WATER: break;
 	case Tile::Type::WALL: walkable = false; transparent = false; break;
 	default: break;
 	}

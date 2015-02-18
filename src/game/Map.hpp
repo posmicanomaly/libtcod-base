@@ -2,7 +2,10 @@ struct Tile {
     bool explored; // has the player already seen this tile ?
 	int variation;
 	enum Type {
-		FLOOR, WALL, GRASS, FOREST, MOUNTAIN, WATER
+		// World map
+		PLAIN, FOREST, MOUNTAIN, JUNGLE, DESERT, GLACIER, TUNDRA, OCEAN, LAKE, SWAMP,
+		// Area maps
+		FLOOR, WALL, GRASS, TREE, WATER_SHALLOW, WATER_DEEP
 	} type;
 	enum Effect {
 		NONE, SCORCHED, BLOODY
