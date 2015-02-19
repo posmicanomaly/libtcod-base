@@ -333,17 +333,17 @@ void Map::render() const {
 	If using tile variation to affect the final color, using 255 will prevent that from occuring
 	*/
 	// World
-	static const TCODColor PLAIN(TCODColor::lightGreen);
-	static const TCODColor FOREST(TCODColor::darkGreen);
-	static const TCODColor MOUNTAIN(TCODColor::darkGrey);
+	static const TCODColor PLAIN(TCODColor::green);
+	static const TCODColor FOREST(TCODColor::green);
+	static const TCODColor MOUNTAIN(TCODColor::grey);
 	static const TCODColor HILL(TCODColor::darkestOrange);
 	static const TCODColor JUNGLE(TCODColor::green);
 	static const TCODColor DESERT(TCODColor::lightestOrange);
-	static const TCODColor GLACIER(TCODColor::lightestBlue);
-	static const TCODColor TUNDRA(TCODColor::desaturatedGreen);
-	static const TCODColor OCEAN(TCODColor::darkerBlue);
-	static const TCODColor LAKE(TCODColor::blue);
-	static const TCODColor SWAMP(TCODColor::darkestGreen);
+	static const TCODColor GLACIER(TCODColor::blue);
+	static const TCODColor TUNDRA(TCODColor::green);
+	static const TCODColor OCEAN(TCODColor::blue);
+	static const TCODColor LAKE(TCODColor::lighterBlue);
+	static const TCODColor SWAMP(TCODColor::green);
 
 	// Area
 	static const TCODColor WALL(TCODColor::grey);
@@ -381,7 +381,7 @@ void Map::render() const {
 			if (engine.map->type == Map::Type::WORLD) {
 				switch (tile->type) {
 				case Tile::Type::PLAIN:
-					glyph = ','; backColor = backColor; foreColor = PLAIN; break;
+					glyph = '~'; backColor = backColor; foreColor = PLAIN; break;
 				case Tile::Type::FOREST:
 					glyph = '&'; backColor = backColor; foreColor = FOREST; break;
 				case Tile::Type::MOUNTAIN:
@@ -426,7 +426,7 @@ void Map::render() const {
 			}
 
 			// Set back color as a darker version of foreColor?
-			backColor = foreColor * 0.1;
+			//backColor = foreColor * 0.1f;
 
 			/*switch (tiles[x + y * width].type) {
 			case Tile::Type::FLOOR:	glyph = '.'; backColor = floor; foreColor = lightFore; break;
@@ -439,10 +439,13 @@ void Map::render() const {
 			// If its not the world map
 			// Adjust brightness based on variation
 			// variation is currently set to be 1 - 10, so this gives us variation / 10 + 1, 10 would be twice the brightness
-			if (type != Type::WORLD) {
-				//backColor = backColor * (float)((tiles[x + y * width].variation / 10) + 1);
-			}
-			
+			//if (type != Type::WORLD) {
+			//backColor = backColor * (float)((tile->variation) / (24));
+			float heightColorMult = (float)(tile->variation / 256.f);
+			foreColor = foreColor * (heightColorMult);
+			//backColor = foreColor * 0.1f;
+			//}
+			//std::cout << (float)((tile->variation) / (128.f)) << std::endl;
 			/*
 			Skew X and Y based on the offset for drawing
 			*/

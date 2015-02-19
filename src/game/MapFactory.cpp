@@ -12,7 +12,7 @@ void MapFactory::makeWorldMap(Map &map) {
 
 
 		heightMap.addFbm(noise2d, map.width / 32, map.height / 32, 0, 0, 8, 0.0f, 1.0f);
-		heightMap.normalize(0, 64);
+		heightMap.normalize(0, 512);
 		delete noise2d;
 	
 
@@ -21,23 +21,24 @@ void MapFactory::makeWorldMap(Map &map) {
 		
 			float value = heightMap.getValue(x, y);
 			Tile *tile = &map.tiles[x + y * map.width];
+			tile->variation = value;
 
-			if (value > 50) {
+			if (value > 400) {
 				tile->type = Tile::Type::MOUNTAIN;
 			}
-			else if (value > 48) {
+			else if (value > 380) {
 				tile->type = Tile::Type::HILL;
 			}
-			else if (value > 46) {
-				tile->type = Tile::Type::FOREST;
-			}
-			else if (value > 42) {
+			//else if (value > 370) {
+			//	tile->type = Tile::Type::FOREST;
+			//}
+			else if (value > 290) {
 				tile->type = Tile::Type::PLAIN;
 			}
-			else if (value > 40){
+			else if (value > 270){
 				tile->type = Tile::Type::DESERT;
 			}
-			else if (value > 36) {
+			else if (value > 256) {
 				tile->type = Tile::Type::LAKE;
 			}
 			else
@@ -92,30 +93,33 @@ void MapFactory::makeWorldMap(Map &map) {
 	names.push_back("Town 5");
 	names.push_back("Town 6");
 	names.push_back("Town 7");
-	for (int i = 0; i < names.size(); i++) {
-		Tile *tile;
-		int x, y;
-		bool valid = false;
-		do {
-			x = map.rng->getInt(1, map.width - 1);
-			y = map.rng->getInt(1, map.height - 1);
-			tile = &map.tiles[x + y * map.width];
-			if (tile->type == Tile::Type::PLAIN || tile->type == Tile::Type::FOREST)
-				valid = true;
-			if (valid) {
-				if (map.hasFeatureAt(x, y, '*'))
-					valid = false;
-			}
-		} while (!valid);
-		std::string name = names[i];
+	bool placeTowns = false;
+	if (placeTowns) {
+		for (int i = 0; i < names.size(); i++) {
+			Tile *tile;
+			int x, y;
+			bool valid = false;
+			do {
+				x = map.rng->getInt(1, map.width - 1);
+				y = map.rng->getInt(1, map.height - 1);
+				tile = &map.tiles[x + y * map.width];
+				if (tile->type == Tile::Type::PLAIN || tile->type == Tile::Type::FOREST)
+					valid = true;
+				if (valid) {
+					if (map.hasFeatureAt(x, y, '*'))
+						valid = false;
+				}
+			} while (!valid);
+			std::string name = names[i];
 
-		Actor *town = new Actor(x, y, 'O', name.c_str(), TCODColor::white);
-		town->fovOnly = false;
-		town->blocks = false;
-		map.actors.push(town);
-		// Make the tile walkable
-		map.tiles[x + y * map.width].type = Tile::Type::PLAIN;
-		map.map->setProperties(x, y, true, true);
+			Actor *town = new Actor(x, y, 'O', name.c_str(), TCODColor::white);
+			town->fovOnly = false;
+			town->blocks = false;
+			map.actors.push(town);
+			// Make the tile walkable
+			map.tiles[x + y * map.width].type = Tile::Type::PLAIN;
+			map.map->setProperties(x, y, true, true);
+		}
 	}
 }
 /*
