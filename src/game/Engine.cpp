@@ -44,7 +44,7 @@ void Engine::init() {
 	map->actors.push(player);
 
 	gui->message(TCODColor::red,
-		"Welcome stranger!\nPrepare to perish in the Tombs of the Ancient Kings.");
+		"Libtcod-base: Roguelike engine by Posmicanomaly2");
 	gameStatus = STARTUP;
 }
 

@@ -6,19 +6,19 @@ void MapFactory::makeTownMap(Map &map) {
 	generateTownBuildings(map);
 }
 void MapFactory::makeWorldMap(Map &map) {
-	
-		TCODHeightMap heightMap(map.width, map.height);
-		TCODNoise* noise2d = new TCODNoise(2, TCOD_NOISE_DEFAULT_HURST, TCOD_NOISE_DEFAULT_LACUNARITY, map.rng, TCOD_NOISE_PERLIN);
+
+	TCODHeightMap heightMap(map.width, map.height);
+	TCODNoise* noise2d = new TCODNoise(2, TCOD_NOISE_DEFAULT_HURST, TCOD_NOISE_DEFAULT_LACUNARITY, map.rng, TCOD_NOISE_PERLIN);
 
 
-		heightMap.addFbm(noise2d, map.width / 32, map.height / 32, 0, 0, 8, 0.0f, 1.0f);
-		heightMap.normalize(0, 512);
-		delete noise2d;
-	
+	heightMap.addFbm(noise2d, map.width / 32, map.height / 32, 0, 0, 8, 0.0f, 1.0f);
+	heightMap.normalize(0, 512);
+	delete noise2d;
+
 
 	for (int x = 0; x < map.width; x++) {
 		for (int y = 0; y < map.height; y++) {
-		
+
 			float value = heightMap.getValue(x, y);
 			Tile *tile = &map.tiles[x + y * map.width];
 			tile->variation = value;
@@ -29,23 +29,42 @@ void MapFactory::makeWorldMap(Map &map) {
 			else if (value > 380) {
 				tile->type = Tile::Type::HILL;
 			}
-			//else if (value > 370) {
-			//	tile->type = Tile::Type::FOREST;
-			//}
 			else if (value > 290) {
 				tile->type = Tile::Type::PLAIN;
 			}
 			else if (value > 270){
+				// Beach only at this time
 				tile->type = Tile::Type::DESERT;
 			}
 			else if (value > 256) {
-				tile->type = Tile::Type::LAKE;
+				// Shore / low lakes
+				tile->type = Tile::Type::WATER_SHALLOW;
 			}
 			else
 				tile->type = Tile::Type::OCEAN;
 		}
 	}
-	
+
+	// Plant some trees
+	for (int i = 0; i < map.width / 16 * map.height / 16; i++) {
+		bool jungle = false;
+		int x, y;
+		do {
+			int jungleChance = map.rng->getInt(0, 100);
+			if (jungleChance < 25) {
+				jungle = true;
+			}
+			x = map.rng->getInt(1, map.width - 1);
+			y = map.rng->getInt(1, map.height - 1);
+		} while (map.tiles[x + y * map.width].type != Tile::Type::PLAIN);
+		if (jungle) {
+			MapFactory::addFeatureSeed(map, x, y, Tile::Type::JUNGLE, 100, 1000);
+		}
+		else {
+			MapFactory::addFeatureSeed(map, x, y, Tile::Type::FOREST, 100, 1000);
+		}
+	}
+
 	// set the map properties for mountains
 	for (int x = 0; x < map.width; x++) {
 		for (int y = 0; y < map.height; y++) {
@@ -122,51 +141,64 @@ void MapFactory::makeWorldMap(Map &map) {
 		}
 	}
 }
+
 /*
 Adds <amount> of <type> to <map>
 for each amount, use a random strength to spread it around
 */
-void MapFactory::addFeatureSeeds(Map &map, Tile::Type type, int amount, int minStrength, int maxStrength, int x, int y) {
-	// Place seeds
-	for (int i = 0; i < amount; i++) {
-		// random x,y
-		if (x == NULL && y == NULL) {
-			x = map.rng->getInt(1, map.width - 1);
-			y = map.rng->getInt(1, map.height - 1);
-		}
-		
-		// set tile to type
-		map.tiles[x + y * map.width].type = type;
-		
-		// strength is how many times it will try and continue to spread
-		int strength = map.rng->getInt(minStrength, maxStrength);
-		
-		// init nextx and nexty to the base seed
-		int nextx = x;
-		int nexty = y;
+void MapFactory::addFeatureSeed(Map &map, int x, int y, Tile::Type type, int minStrength, int maxStrength) {
+	
+	// set tile to type
+	map.tiles[x + y * map.width].type = type;
 
-		// init directional modifiers
-		int xd;
-		int yd;
+	// strength is how many times it will try and continue to spread
+	int strength = map.rng->getInt(minStrength, maxStrength);
 
-		// Grow seed
-		for (int s = 0; s < strength; s++) {
-			// Get a random direction while the nextx, nexty is out of range
-			bool valid = true;
-			do {
-				xd = map.rng->getInt(-1, 1);
-				yd = map.rng->getInt(-1, 1);
-				if ((nextx + xd < 0 || nextx + xd >= map.width) || (nexty + yd < 0 || nexty + yd >= map.height)) {
-					valid = false;
-				}
-			} while (!valid);
-			
+	// init nextx and nexty to the base seed
+	int nextx = x;
+	int nexty = y;
+
+	// init directional modifiers
+	int xd;
+	int yd;
+
+	// Grow seed
+	int maxTries = strength * 10;
+	int tries = 0;
+	for (int s = 0; s < strength; s++) {
+		// Get a random direction while the nextx, nexty is out of range
+		bool valid = true;
+		do {
+			if (tries > maxTries) {
+				return;
+			}
+			xd = map.rng->getInt(-1, 1);
+			yd = map.rng->getInt(-1, 1);
+			if ((nextx + xd < 0 || nextx + xd >= map.width) || (nexty + yd < 0 || nexty + yd >= map.height)) {
+				valid = false;
+				//std::cout << "out of range" << std::endl;
+			}
+			tries++;
+		} while (!valid);
+
+		if (valid) {
 			// nextx, nexty will be in range, add the directional modifiers to nextx, nexty
 			nextx += xd;
 			nexty += yd;
-			
+
 			// set the nextx, nexty tile to type
-			map.tiles[nextx + nexty * map.width].type = type;
+			Tile *tile = &map.tiles[nextx + nexty * map.width];
+			bool changeType = true;
+			switch (tile->type) {
+			case Tile::Type::MOUNTAIN:
+			case Tile::Type::OCEAN:
+			case Tile::Type::WATER_SHALLOW:
+			case Tile::Type::DESERT:
+			case Tile::Type::LAKE: changeType = false; break;
+			}
+			if (changeType) {
+				tile->type = type;
+			}
 		}
 	}
 }
@@ -231,7 +263,7 @@ void MapFactory::placeBoundingWall(Map &map, int x1, int y1, int x2, int y2) {
 			if (y == y1 || y == y2) {
 				if (x != (x1 + x2) / 2)
 					map.tiles[x + y * map.width].type = Tile::Type::WALL;
-			}				
+			}
 		}
 	}
 }

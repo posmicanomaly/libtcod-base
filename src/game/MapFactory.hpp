@@ -3,7 +3,7 @@ public:
 	static void makeWorldMap(Map &map);
 	static void makeTownMap(Map &map);
 private:
-	static void addFeatureSeeds(Map &map, Tile::Type type, int amount, int minStrength, int maxStrength, int x = NULL, int y = NULL);
+	static void addFeatureSeed(Map &map, int x, int y, Tile::Type type, int minStrength, int maxStrength);
 	static void fillWithType(Map &map, Tile::Type type);
 	static void generateTownBuildings(Map &map);
 	static bool checkBuildingPlacement(Map &map, int x, int y, int width, int height);

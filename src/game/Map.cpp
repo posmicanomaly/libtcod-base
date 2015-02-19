@@ -329,15 +329,13 @@ void Map::render() const {
 		// Area maps
 			FLOOR, WALL, GRASS, TREE, WATER_SHALLOW, WATER_DEEP
 	*/
-	/*
-	If using tile variation to affect the final color, using 255 will prevent that from occuring
-	*/
+	
 	// World
-	static const TCODColor PLAIN(TCODColor::green);
-	static const TCODColor FOREST(TCODColor::green);
-	static const TCODColor MOUNTAIN(TCODColor::grey);
+	static const TCODColor PLAIN(TCODColor::darkestGreen);
+	static const TCODColor FOREST(TCODColor::darkerGreen);
+	static const TCODColor MOUNTAIN(TCODColor::darkerGrey);
 	static const TCODColor HILL(TCODColor::darkestOrange);
-	static const TCODColor JUNGLE(TCODColor::green);
+	static const TCODColor JUNGLE(TCODColor::darkerGreen);
 	static const TCODColor DESERT(TCODColor::lightestOrange);
 	static const TCODColor GLACIER(TCODColor::blue);
 	static const TCODColor TUNDRA(TCODColor::green);
@@ -345,12 +343,14 @@ void Map::render() const {
 	static const TCODColor LAKE(TCODColor::lighterBlue);
 	static const TCODColor SWAMP(TCODColor::green);
 
+	// Common
+	static const TCODColor WATER_SHALLOW(TCODColor::lightBlue);
+
 	// Area
 	static const TCODColor WALL(TCODColor::grey);
 	static const TCODColor FLOOR(TCODColor::white);
 	static const TCODColor GRASS(TCODColor::green);
 	static const TCODColor TREE(TCODColor::darkerGreen);
-	static const TCODColor WATER_SHALLOW(TCODColor::lightBlue);
 	static const TCODColor WATER_DEEP(TCODColor::blue);
 
     /*static const TCODColor wall(TCODColor(40, 30, 30));
@@ -372,36 +372,43 @@ void Map::render() const {
 			if (x < 0 || y < 0 || x >= width || y >= height) {
 				continue;
 			}
-			char glyph = '?';
+			int glyph = '?';
 			TCODColor backColor = TCODColor::black;
 			TCODColor foreColor = TCODColor::azure;
 
 			Tile *tile = &tiles[x + y * width];
+			static const int ALMOST_EQUAL_TO = 247;
+			static const int JUNLE_J = 20;// 244;
+			static const int INTERSECTION = 239;
+			static const int UP_TRIANGLE = 30;
+			static const int SPADE = 6;
 
 			if (engine.map->type == Map::Type::WORLD) {
 				switch (tile->type) {
 				case Tile::Type::PLAIN:
-					glyph = '~'; backColor = backColor; foreColor = PLAIN; break;
+					glyph = ALMOST_EQUAL_TO; backColor = backColor; foreColor = PLAIN; break;
 				case Tile::Type::FOREST:
-					glyph = '&'; backColor = backColor; foreColor = FOREST; break;
+					glyph = SPADE; backColor = backColor; foreColor = FOREST; break;
 				case Tile::Type::MOUNTAIN:
-					glyph = '^'; backColor = backColor; foreColor = MOUNTAIN; break;
+					glyph = UP_TRIANGLE; backColor = backColor; foreColor = MOUNTAIN; break;
 				case Tile::Type::HILL:
-					glyph = 'n'; backColor = backColor; foreColor = HILL; break;
+					glyph = INTERSECTION; backColor = backColor; foreColor = HILL; break;
 				case Tile::Type::JUNGLE:
-					glyph = '7'; backColor = backColor; foreColor = JUNGLE; break;
+					glyph = JUNLE_J; backColor = backColor; foreColor = JUNGLE; break;
 				case Tile::Type::DESERT:
-					glyph = '~'; backColor = backColor; foreColor = DESERT; break;
+					glyph = ALMOST_EQUAL_TO; backColor = backColor; foreColor = DESERT; break;
 				case Tile::Type::GLACIER:
 					glyph = '='; backColor = backColor; foreColor = GLACIER; break;
 				case Tile::Type::TUNDRA:
 					glyph = '='; backColor = backColor; foreColor = TUNDRA; break;
 				case Tile::Type::OCEAN:
-					glyph = '~'; backColor = backColor; foreColor = OCEAN; break;
+					glyph = ALMOST_EQUAL_TO; backColor = backColor; foreColor = OCEAN; break;
 				case Tile::Type::LAKE:
-					glyph = '~'; backColor = backColor; foreColor = LAKE; break;
+					glyph = '='; backColor = backColor; foreColor = LAKE; break;
+				case Tile::Type::WATER_SHALLOW:
+					glyph = ALMOST_EQUAL_TO; backColor = backColor; foreColor = WATER_SHALLOW; break;
 				case Tile::Type::SWAMP:
-					glyph = '~'; backColor = backColor; foreColor = SWAMP; break;
+					glyph = '='; backColor = backColor; foreColor = SWAMP; break;
 				default:
 					glyph = '?'; backColor = backColor; foreColor = PLAIN; break;
 				}
@@ -441,8 +448,8 @@ void Map::render() const {
 			// variation is currently set to be 1 - 10, so this gives us variation / 10 + 1, 10 would be twice the brightness
 			//if (type != Type::WORLD) {
 			//backColor = backColor * (float)((tile->variation) / (24));
-			float heightColorMult = (float)(tile->variation / 256.f);
-			foreColor = foreColor * (heightColorMult);
+			float heightColorMult = (float)(tile->variation / 512.f );
+			foreColor = foreColor * (heightColorMult * heightColorMult) * 2.5f;
 			//backColor = foreColor * 0.1f;
 			//}
 			//std::cout << (float)((tile->variation) / (128.f)) << std::endl;
