@@ -336,6 +336,7 @@ void Map::render() const {
 	static const TCODColor PLAIN(TCODColor::lightGreen);
 	static const TCODColor FOREST(TCODColor::darkGreen);
 	static const TCODColor MOUNTAIN(TCODColor::darkGrey);
+	static const TCODColor HILL(TCODColor::darkestOrange);
 	static const TCODColor JUNGLE(TCODColor::green);
 	static const TCODColor DESERT(TCODColor::lightestOrange);
 	static const TCODColor GLACIER(TCODColor::lightestBlue);
@@ -380,11 +381,13 @@ void Map::render() const {
 			if (engine.map->type == Map::Type::WORLD) {
 				switch (tile->type) {
 				case Tile::Type::PLAIN:
-					glyph = '.'; backColor = backColor; foreColor = PLAIN; break;
+					glyph = ','; backColor = backColor; foreColor = PLAIN; break;
 				case Tile::Type::FOREST:
 					glyph = '&'; backColor = backColor; foreColor = FOREST; break;
 				case Tile::Type::MOUNTAIN:
 					glyph = '^'; backColor = backColor; foreColor = MOUNTAIN; break;
+				case Tile::Type::HILL:
+					glyph = 'n'; backColor = backColor; foreColor = HILL; break;
 				case Tile::Type::JUNGLE:
 					glyph = '7'; backColor = backColor; foreColor = JUNGLE; break;
 				case Tile::Type::DESERT:
@@ -392,9 +395,9 @@ void Map::render() const {
 				case Tile::Type::GLACIER:
 					glyph = '='; backColor = backColor; foreColor = GLACIER; break;
 				case Tile::Type::TUNDRA:
-					glyph = ','; backColor = backColor; foreColor = TUNDRA; break;
+					glyph = '='; backColor = backColor; foreColor = TUNDRA; break;
 				case Tile::Type::OCEAN:
-					glyph = '='; backColor = backColor; foreColor = OCEAN; break;
+					glyph = '~'; backColor = backColor; foreColor = OCEAN; break;
 				case Tile::Type::LAKE:
 					glyph = '~'; backColor = backColor; foreColor = LAKE; break;
 				case Tile::Type::SWAMP:

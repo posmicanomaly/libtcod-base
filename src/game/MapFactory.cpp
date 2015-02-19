@@ -6,27 +6,50 @@ void MapFactory::makeTownMap(Map &map) {
 	generateTownBuildings(map);
 }
 void MapFactory::makeWorldMap(Map &map) {
-	fillWithType(map, Tile::Type::OCEAN);
-	for (int i = Tile::Type::PLAIN; i < Tile::Type::SWAMP; i++) {
-		if (i == Tile::Type::OCEAN || i == Tile::Type::GLACIER) {
-			continue;
+	
+		TCODHeightMap heightMap(map.width, map.height);
+		TCODNoise* noise2d = new TCODNoise(2, TCOD_NOISE_DEFAULT_HURST, TCOD_NOISE_DEFAULT_LACUNARITY, map.rng, TCOD_NOISE_PERLIN);
+
+
+		heightMap.addFbm(noise2d, map.width / 32, map.height / 32, 0, 0, 8, 0.0f, 1.0f);
+		heightMap.normalize(0, 64);
+		delete noise2d;
+	
+
+	for (int x = 0; x < map.width; x++) {
+		for (int y = 0; y < map.height; y++) {
+		
+			float value = heightMap.getValue(x, y);
+			Tile *tile = &map.tiles[x + y * map.width];
+
+			if (value > 50) {
+				tile->type = Tile::Type::MOUNTAIN;
+			}
+			else if (value > 48) {
+				tile->type = Tile::Type::HILL;
+			}
+			else if (value > 46) {
+				tile->type = Tile::Type::FOREST;
+			}
+			else if (value > 42) {
+				tile->type = Tile::Type::PLAIN;
+			}
+			else if (value > 40){
+				tile->type = Tile::Type::DESERT;
+			}
+			else if (value > 36) {
+				tile->type = Tile::Type::LAKE;
+			}
+			else
+				tile->type = Tile::Type::OCEAN;
 		}
-		addFeatureSeeds(map, static_cast<Tile::Type>(i), map.rng->getInt(400, 400));
 	}
-	/*addFeatureSeeds(map, Tile::Type::PLAIN, map.rng->getInt(100, 100));
-	addFeatureSeeds(map, Tile::Type::FOREST, map.rng->getInt(30, 100));
-	addFeatureSeeds(map, Tile::Type::MOUNTAIN, map.rng->getInt(30, 100));
-	addFeatureSeeds(map, Tile::Type::LAKE, map.rng->getInt(30, 100));
-	addFeatureSeeds(map, Tile::Type::DESERT, map.rng->getInt(30, 100));
-	addFeatureSeeds(map, Tile::Type::GLACIER, map.rng->getInt(30, 100));
-	addFeatureSeeds(map, Tile::Type::SWAMP, map.rng->getInt(30, 100));
-	addFeatureSeeds(map, Tile::Type::OCEAN, map.rng->getInt(30, 100));
-	addFeatureSeeds(map, Tile::Type::JUNGLE, map.rng->getInt(30, 100));*/
+	
 	// set the map properties for mountains
 	for (int x = 0; x < map.width; x++) {
 		for (int y = 0; y < map.height; y++) {
 			if (map.tiles[x + y * map.width].type == Tile::Type::MOUNTAIN) {
-				map.map->setProperties(x, y, true, false);
+				map.map->setProperties(x, y, true, true);
 			}
 		}
 	}
@@ -65,14 +88,25 @@ void MapFactory::makeWorldMap(Map &map) {
 	names.push_back("Town 1");
 	names.push_back("Town 2");
 	names.push_back("Town 3");
+	names.push_back("town 4");
+	names.push_back("Town 5");
+	names.push_back("Town 6");
+	names.push_back("Town 7");
 	for (int i = 0; i < names.size(); i++) {
 		Tile *tile;
 		int x, y;
+		bool valid = false;
 		do {
 			x = map.rng->getInt(1, map.width - 1);
 			y = map.rng->getInt(1, map.height - 1);
 			tile = &map.tiles[x + y * map.width];
-		} while (tile->type != Tile::Type::PLAIN && map.hasFeatureAt(x, y, '*'));
+			if (tile->type == Tile::Type::PLAIN || tile->type == Tile::Type::FOREST)
+				valid = true;
+			if (valid) {
+				if (map.hasFeatureAt(x, y, '*'))
+					valid = false;
+			}
+		} while (!valid);
 		std::string name = names[i];
 
 		Actor *town = new Actor(x, y, 'O', name.c_str(), TCODColor::white);
@@ -88,18 +122,20 @@ void MapFactory::makeWorldMap(Map &map) {
 Adds <amount> of <type> to <map>
 for each amount, use a random strength to spread it around
 */
-void MapFactory::addFeatureSeeds(Map &map, Tile::Type type, int amount) {
+void MapFactory::addFeatureSeeds(Map &map, Tile::Type type, int amount, int minStrength, int maxStrength, int x, int y) {
 	// Place seeds
 	for (int i = 0; i < amount; i++) {
 		// random x,y
-		int x = map.rng->getInt(1, map.width - 1);
-		int y = map.rng->getInt(1, map.height - 1);
+		if (x == NULL && y == NULL) {
+			x = map.rng->getInt(1, map.width - 1);
+			y = map.rng->getInt(1, map.height - 1);
+		}
 		
 		// set tile to type
 		map.tiles[x + y * map.width].type = type;
 		
 		// strength is how many times it will try and continue to spread
-		int strength = map.rng->getInt(10, 50);
+		int strength = map.rng->getInt(minStrength, maxStrength);
 		
 		// init nextx and nexty to the base seed
 		int nextx = x;
@@ -112,10 +148,14 @@ void MapFactory::addFeatureSeeds(Map &map, Tile::Type type, int amount) {
 		// Grow seed
 		for (int s = 0; s < strength; s++) {
 			// Get a random direction while the nextx, nexty is out of range
+			bool valid = true;
 			do {
 				xd = map.rng->getInt(-1, 1);
 				yd = map.rng->getInt(-1, 1);
-			} while ((nextx + xd < 0 || nextx + xd >= map.width) || (nexty + yd < 0 || nexty + yd >= map.height));
+				if ((nextx + xd < 0 || nextx + xd >= map.width) || (nexty + yd < 0 || nexty + yd >= map.height)) {
+					valid = false;
+				}
+			} while (!valid);
 			
 			// nextx, nexty will be in range, add the directional modifiers to nextx, nexty
 			nextx += xd;
