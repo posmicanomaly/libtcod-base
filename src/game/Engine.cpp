@@ -8,7 +8,7 @@ const int MAP_HEIGHT = 200;
 
 Engine::Engine(int screenWidth, int screenHeight) : gameStatus(STARTUP),
 player(NULL), map(NULL), fovRadius(WORLD_FOV_RADIUS),
-screenWidth(screenWidth), screenHeight(screenHeight), level(1) {
+screenWidth(screenWidth), screenHeight(screenHeight), level(0) {
 	dbglog("LIBTCOD-BASE\nRoguelike Engine\nJesse Pospisil 2015\n-----\n");
 	TCODConsole::setCustomFont("terminal16x16_gs_ro.png", TCOD_FONT_LAYOUT_ASCII_INROW);
 	TCODConsole::initRoot(screenWidth, screenHeight, "libtcod-base", false);
@@ -64,11 +64,7 @@ void Engine::term() {
 }
 
 void Engine::update() {
-	updateCount++;
-	if (updateCount > 60 * 3) {
-		map->shimmer();
-		updateCount = 0;
-	}
+	
 	if (gameStatus == STARTUP) map->computeFov();
 	gameStatus = IDLE;
 	TCODSystem::checkForEvent(TCOD_EVENT_KEY_PRESS | TCOD_EVENT_MOUSE, &lastKey, &mouse);
@@ -102,6 +98,11 @@ void Engine::translateMouseToView() {
 	mouse_winY = mouse.cy;
 }
 void Engine::render() {
+	updateCount++;
+	if (updateCount > 60 * 3) {
+		map->shimmer();
+		updateCount = 0;
+	}
 	TCODConsole::root->clear();
 
 	// Update offsets for "viewport"

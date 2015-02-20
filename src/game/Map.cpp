@@ -107,7 +107,7 @@ void Map::shimmer() {
 	for (int x = 0; x < width; x++) {
 		for (int y = 0; y < height; y++) {
 			Tile *t = &tiles[x + y * width];
-			if (t->type == Tile::Type::OCEAN || t->type == Tile::Type::LAKE) {
+			if (t->type == Tile::Type::OCEAN || t->type == Tile::Type::WATER_SHALLOW) {
 				int chance = rng->getInt(0, 100);
 				if (chance < 10) {
 					if (t->style == 0) {
@@ -420,6 +420,7 @@ void Map::render() const {
 			static const int INTERSECTION = 239;
 			static const int UP_TRIANGLE = 30;
 			static const int SPADE = 6;
+			static const int CLOVER = 5;
 
 			// Set colors if the type is WORLD
 			if (engine.map->type == Map::Type::WORLD) {
@@ -487,11 +488,17 @@ void Map::render() const {
 				case Tile::Type::WALL:
 					glyph = '#'; backColor = backColor; foreColor = WALL; break;
 				case Tile::Type::GRASS:
-					glyph = '"'; backColor = backColor; foreColor = GRASS; break;
+					glyph = ALMOST_EQUAL_TO; backColor = backColor; foreColor = GRASS; break;
 				case Tile::Type::TREE:
-					glyph = 'T'; backColor = backColor; foreColor = TREE; break;
+					glyph = SPADE; backColor = backColor; foreColor = TREE; break;
 				case Tile::Type::WATER_SHALLOW:
-					glyph = ALMOST_EQUAL_TO; backColor = backColor; foreColor = WATER_SHALLOW; break;
+					if (tile->style == 0) {
+						glyph = ALMOST_EQUAL_TO;
+					}
+					else {
+						glyph = '=';
+					}
+					backColor = backColor; foreColor = WATER_SHALLOW; break;
 				case Tile::Type::WATER_DEEP:
 					glyph = ALMOST_EQUAL_TO; backColor = backColor; foreColor = WATER_DEEP; break;
 				default:

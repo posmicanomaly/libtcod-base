@@ -53,7 +53,10 @@ void MapFactory::makeTownMap(Map &map) {
 			Tile *tile = &map.tiles[x + y * map.width];
 			tile->variation = value;
 			//std::cout << value << std::endl;
-			if (value > waterLevel + 50) {
+			if (value > waterLevel + 125) {
+				tile->type = Tile::Type::TREE;
+			}
+			else if (value > waterLevel + 50) {
 				tile->type = Tile::Type::GRASS;
 			}
 			else if (value > waterLevel) {
@@ -64,6 +67,7 @@ void MapFactory::makeTownMap(Map &map) {
 			}
 		}
 	}
+	//MapFactory::addTrees(map, 200);
 	generateTownBuildings(map);
 	setMapTileProperties(map);
 	delete noise2d;
@@ -111,24 +115,7 @@ void MapFactory::makeWorldMap(Map &map) {
 	}
 
 	// Plant some trees
-	for (int i = 0; i < map.width / 16 * map.height / 16; i++) {
-		bool jungle = false;
-		int x, y;
-		do {
-			int jungleChance = map.rng->getInt(0, 100);
-			if (jungleChance < 25) {
-				jungle = true;
-			}
-			x = map.rng->getInt(1, map.width - 1);
-			y = map.rng->getInt(1, map.height - 1);
-		} while (map.tiles[x + y * map.width].type != Tile::Type::PLAIN);
-		if (jungle) {
-			MapFactory::addFeatureSeed(map, x, y, Tile::Type::JUNGLE, 100, 1000);
-		}
-		else {
-			MapFactory::addFeatureSeed(map, x, y, Tile::Type::FOREST, 100, 1000);
-		}
-	}
+	MapFactory::addTrees(map, 16);
 	// Add some rivers
 	MapFactory::addRivers(map);
 	// Add some caves
@@ -138,6 +125,36 @@ void MapFactory::makeWorldMap(Map &map) {
 	
 	// Set all the map's TCODMAP properties based on Tile::Type
 	setMapTileProperties(map);
+}
+
+void MapFactory::addTrees(Map &map, int divisor) {
+	Tile::Type baseType;
+	Tile::Type treeType;
+	switch (map.type) {
+	case Map::Type::WORLD:
+		baseType = Tile::Type::PLAIN; treeType = Tile::Type::FOREST; break;
+	case Map::Type::TOWN:
+		baseType = Tile::Type::GRASS; treeType = Tile::Type::TREE; break;
+	default:				baseType = Tile::Type::PLAIN; break;
+	}
+	for (int i = 0; i < map.width / divisor * map.height / divisor; i++) {
+		bool jungle = false;
+		int x, y;
+		do {
+			int jungleChance = map.rng->getInt(0, 100);
+			if (jungleChance < 25) {
+				jungle = true;
+			}
+			x = map.rng->getInt(1, map.width - 1);
+			y = map.rng->getInt(1, map.height - 1);
+		} while (map.tiles[x + y * map.width].type != baseType);
+		if (jungle && map.type == Map::Type::WORLD) {
+			MapFactory::addFeatureSeed(map, x, y, Tile::Type::JUNGLE, 100, 1000);
+		}
+		else {
+			MapFactory::addFeatureSeed(map, x, y, treeType, 100, 1000);
+		}
+	}
 }
 
 void MapFactory::addTowns(Map &map) {
