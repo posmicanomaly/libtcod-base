@@ -322,8 +322,8 @@ void MapFactory::addRivers(Map &map) {
 				}
 				break;
 			}
-			// My river cornering isn't working right now, use -1 for default waves glyph
-			style = -1;
+			// My river cornering isn't working right now, use 0 for default waves glyph
+			style = 0;
 			lowest->style = style;
 			prevDirection = curDirection;
 			Tile *up = NULL;

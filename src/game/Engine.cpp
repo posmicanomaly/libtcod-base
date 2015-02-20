@@ -64,8 +64,11 @@ void Engine::term() {
 }
 
 void Engine::update() {
-
-
+	updateCount++;
+	if (updateCount > 60 * 3) {
+		map->shimmer();
+		updateCount = 0;
+	}
 	if (gameStatus == STARTUP) map->computeFov();
 	gameStatus = IDLE;
 	TCODSystem::checkForEvent(TCOD_EVENT_KEY_PRESS | TCOD_EVENT_MOUSE, &lastKey, &mouse);

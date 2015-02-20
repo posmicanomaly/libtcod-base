@@ -50,6 +50,7 @@ public :
 	void save();
  	void init(bool withActors);
 	void setTileEffect(int x, int y, Tile::Effect effect);
+	void shimmer();
 	
 protected :
     Tile *tiles;

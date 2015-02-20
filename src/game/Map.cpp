@@ -103,6 +103,25 @@ Map::~Map() {
 	delete map;
 }
 
+void Map::shimmer() {
+	for (int x = 0; x < width; x++) {
+		for (int y = 0; y < height; y++) {
+			Tile *t = &tiles[x + y * width];
+			if (t->type == Tile::Type::OCEAN || t->type == Tile::Type::LAKE) {
+				int chance = rng->getInt(0, 100);
+				if (chance < 10) {
+					if (t->style == 0) {
+						t->style++;
+					}
+					else {
+						t->style--;
+					}
+				}
+			}
+		}
+	}
+}
+
 void Map::dig(int x1, int y1, int x2, int y2) {
 	if (x2 < x1) {
 		int tmp = x2;
@@ -422,19 +441,27 @@ void Map::render() const {
 				case Tile::Type::TUNDRA:
 					glyph = '='; backColor = backColor; foreColor = TUNDRA; break;
 				case Tile::Type::OCEAN:
-					glyph = ALMOST_EQUAL_TO; backColor = backColor; foreColor = OCEAN; break;
+					if (tile->style == 0) {
+						glyph = ALMOST_EQUAL_TO;
+					}
+					else {
+						glyph = '=';
+					}
+					backColor = backColor; foreColor = OCEAN; break;
 				case Tile::Type::LAKE:
 					glyph = '='; backColor = backColor; foreColor = LAKE; break;
 				case Tile::Type::WATER_SHALLOW:
 					glyph = ALMOST_EQUAL_TO; backColor = backColor; foreColor = WATER_SHALLOW; break;
 				case Tile::Type::RIVER:
 					switch (tile->style) {
+					case 0: glyph = ALMOST_EQUAL_TO; break;
+					case 1: glyph = '='; break;
 						// cornering broken, use this
-					case -1: glyph = ALMOST_EQUAL_TO; break;
+					//case -1: glyph = ALMOST_EQUAL_TO; break;
 						// up and down
-					case 0: glyph = 186; break;
+					//case 0: glyph = 186; break;
 						// left and right
-					case 1:	glyph = 205; break;
+					//case 1:	glyph = 205; break;
 						// upper left
 					case 2: glyph = 201; break;
 						// upper right
