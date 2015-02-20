@@ -438,23 +438,13 @@ void Map::render() const {
 					glyph = '!'; backColor = backColor; foreColor = FLOOR; break;
 				}
 			}
+			
+			/*
+			This sets the color brightness/contrast/gradient,
+			based on the height(variation) of each tile.
+			*/
 
-			// Set back color as a darker version of foreColor?
-			//backColor = foreColor * 0.1f;
-
-			/*switch (tiles[x + y * width].type) {
-			case Tile::Type::FLOOR:	glyph = '.'; backColor = floor; foreColor = lightFore; break;
-			case Tile::Type::WALL:	glyph = '#'; backColor = wall; foreColor = darkFore; break;
-			case Tile::Type::GRASS:	glyph = '"'; backColor = grass; foreColor = darkFore; break;
-			case Tile::Type::FOREST: glyph = '&'; backColor = forest; foreColor = darkFore; break;
-			case Tile::Type::MOUNTAIN: glyph = '^'; backColor = mountain; foreColor = darkFore; break;
-			case Tile::Type::WATER: glyph = '~'; backColor = water; foreColor = darkFore; break;
-			}*/
-			// If its not the world map
-			// Adjust brightness based on variation
-			// variation is currently set to be 1 - 10, so this gives us variation / 10 + 1, 10 would be twice the brightness
-			//if (type != Type::WORLD) {
-			//backColor = backColor * (float)((tile->variation) / (24));
+			// The calcuations result in a particually dim color, so these will brighten it up
 			static const float BRIGHTNESS_WORLD = 2.5f;
 			static const float BRIGHTNESS_TOWN = 2.5f;
 			float brightness = 2.5f;
@@ -462,14 +452,22 @@ void Map::render() const {
 			case Map::Type::WORLD: brightness = BRIGHTNESS_WORLD; break;
 			case Map::Type::TOWN: brightness = BRIGHTNESS_TOWN; break;
 			}
+
+			// This is the multiplier to use against the foreColor.
+			// A variation that is the maximum height of the map will get the full color * brightness
 			float heightColorMult = (float)(tile->variation / heightMapMax);
+
+			// Squaring the heightColorMult gives a more pronounced gradient, but leaves it dim,
+			// so we use the brightness to jack it back up.
 			foreColor = foreColor * (heightColorMult * heightColorMult) * brightness;
-			//backColor = foreColor * 0.1f;
-			//}
-			//std::cout << (float)((tile->variation) / (128.f)) << std::endl;
+
+			// Set the backcolor to 1/4 of the foreColor for better visual appeal
+			backColor = foreColor * 0.25f;
+			
 			/*
 			Skew X and Y based on the offset for drawing
 			*/
+
 			skewX = x;
 			skewY = y;
 			engine.translateToView(skewX, skewY);
