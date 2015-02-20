@@ -79,6 +79,7 @@ void Map::init(bool withActors) {
 		bsp.splitRecursive(rng, 8, ROOM_MAX_SIZE, ROOM_MAX_SIZE, 1.5f, 1.5f);
 		BspListener listener(*this);
 		bsp.traverseInvertedLevelOrder(&listener, (void *)withActors);
+		MapFactory::makeDungeonMap(*this);
 	}
 
 	// World
@@ -353,8 +354,8 @@ void Map::render() const {
 	static const TCODColor WATER_SHALLOW(TCODColor::lightBlue);
 
 	// Area
-	static const TCODColor WALL(TCODColor::darkestGrey);
-	static const TCODColor FLOOR(TCODColor::darkerGrey);
+	static const TCODColor WALL(TCODColor::darkerGrey);
+	static const TCODColor FLOOR(TCODColor::grey);
 	static const TCODColor GRASS(TCODColor::darkestGreen);
 	static const TCODColor TREE(TCODColor::darkerGreen);
 	static const TCODColor WATER_DEEP(TCODColor::blue);
@@ -456,7 +457,7 @@ void Map::render() const {
 			//backColor = backColor * (float)((tile->variation) / (24));
 			static const float BRIGHTNESS_WORLD = 2.5f;
 			static const float BRIGHTNESS_TOWN = 2.5f;
-			float brightness = 1.0f;
+			float brightness = 2.5f;
 			switch (type) {
 			case Map::Type::WORLD: brightness = BRIGHTNESS_WORLD; break;
 			case Map::Type::TOWN: brightness = BRIGHTNESS_TOWN; break;

@@ -1,4 +1,42 @@
 #include "main.hpp"
+void MapFactory::setMapTileProperties(Map &map) {
+	for (int x = 0; x < map.width; x++) {
+		for (int y = 0; y < map.height; y++) {
+			switch (map.tiles[x + y * map.width].type){
+			case Tile::Type::MOUNTAIN:
+			case Tile::Type::WALL:
+				map.map->setProperties(x, y, false, false);
+			}
+		}
+	}
+}
+void MapFactory::makeDungeonMap(Map &map) {
+	TCODHeightMap heightMap(map.width, map.height);
+	map.heightMapMin = 256.f;
+	map.heightMapMax = 512.f;
+	float waterLevel = 10.f + map.heightMapMin;
+	TCODNoise* noise2d = new TCODNoise(2, TCOD_NOISE_DEFAULT_HURST, TCOD_NOISE_DEFAULT_LACUNARITY, map.rng, TCOD_NOISE_PERLIN);
+	heightMap.addFbm(noise2d, map.width / 32, map.height / 32, 0, 0, 8, 0.0f, 1.0f);
+	heightMap.normalize(map.heightMapMin, map.heightMapMax);
+	for (int x = 0; x < map.width; x++) {
+		for (int y = 0; y < map.height; y++) {
+			float value = heightMap.getValue(x, y);
+			Tile *tile = &map.tiles[x + y * map.width];
+			tile->variation = value;
+			//std::cout << value << std::endl;
+			if (value > waterLevel + 50) {
+				//tile->type = Tile::Type::FLOOR;
+			}
+			else if (value > waterLevel) {
+				tile->type = Tile::Type::WATER_SHALLOW;
+			}
+			else {
+				tile->type = Tile::Type::WATER_DEEP;
+			}
+		}
+	}
+	setMapTileProperties(map);
+}
 void MapFactory::makeTownMap(Map &map) {
 	
 	placeBoundingWall(map, 5, 5, map.width - 5, map.height - 5);
@@ -27,6 +65,7 @@ void MapFactory::makeTownMap(Map &map) {
 		}
 	}
 	generateTownBuildings(map);
+	setMapTileProperties(map);
 	delete noise2d;
 }
 void MapFactory::makeWorldMap(Map &map) {
@@ -166,6 +205,7 @@ void MapFactory::makeWorldMap(Map &map) {
 			map.map->setProperties(x, y, true, true);
 		}
 	}
+	setMapTileProperties(map);
 }
 
 /*
