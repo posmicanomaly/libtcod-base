@@ -330,11 +330,15 @@ void Map::setTileEffect(int x, int y, Tile::Effect effect) {
 
 void Map::render() const {
 	/*
+	Color constants
+
 	Reference:
 		// World map
 			PLAIN, FOREST, MOUNTAIN, JUNGLE, DESERT, GLACIER, TUNDRA, OCEAN, LAKE, SWAMP,
+		// Common
+			WATER_SHALLOW
 		// Area maps
-			FLOOR, WALL, GRASS, TREE, WATER_SHALLOW, WATER_DEEP
+			FLOOR, WALL, GRASS, TREE, WATER_DEEP
 	*/
 	
 	// World
@@ -354,42 +358,45 @@ void Map::render() const {
 	static const TCODColor WATER_SHALLOW(TCODColor::lightBlue);
 
 	// Area
-	static const TCODColor WALL(TCODColor::darkerGrey);
+	static const TCODColor WALL(TCODColor::lightGrey);
 	static const TCODColor FLOOR(TCODColor::grey);
 	static const TCODColor GRASS(TCODColor::darkestGreen);
 	static const TCODColor TREE(TCODColor::darkerGreen);
 	static const TCODColor WATER_DEEP(TCODColor::blue);
 
-    /*static const TCODColor wall(TCODColor(40, 30, 30));
-	static const TCODColor floor(TCODColor(5, 5, 10));
-	static const TCODColor grass(TCODColor(0, 40, 0));
-	static const TCODColor forest(TCODColor(20, 70, 0));
-	static const TCODColor mountain(TCODColor(100, 50, 0));
-	static const TCODColor water(TCODColor(0, 0, 100));*/
-
-	/*static const TCODColor lightFore(TCODColor::white);
-	static const TCODColor darkFore(TCODColor::black);*/
+	// Get the drawing offsets
 	int xOffset = engine.xOffset;
 	int yOffset = engine.yOffset;
+
+	// Init skew coordinates
 	int skewX;
 	int skewY;
-	//std::cout << "offsets x: " << xOffset << " y: " << yOffset << std::endl;
+	
+	// For x within view width and y within view height
 	for (int x = engine.player->x - engine.VIEW_WIDTH / 2; x <= engine.player->x + engine.VIEW_WIDTH / 2; x++) {
 		for (int y = engine.player->y - engine.VIEW_HEIGHT / 2; y <= engine.player->y + engine.VIEW_HEIGHT / 2; y++) {
+
+			// Out of range
 			if (x < 0 || y < 0 || x >= width || y >= height) {
 				continue;
 			}
+
+			// Defaults
 			int glyph = '?';
 			TCODColor backColor = TCODColor::black;
 			TCODColor foreColor = TCODColor::azure;
 
+			// Current tile pointer
 			Tile *tile = &tiles[x + y * width];
+
+			// Constant glyphs
 			static const int ALMOST_EQUAL_TO = 247;
 			static const int JUNLE_J = 20;// 244;
 			static const int INTERSECTION = 239;
 			static const int UP_TRIANGLE = 30;
 			static const int SPADE = 6;
 
+			// Set colors if the type is WORLD
 			if (engine.map->type == Map::Type::WORLD) {
 				switch (tile->type) {
 				case Tile::Type::PLAIN:
@@ -420,6 +427,8 @@ void Map::render() const {
 					glyph = '?'; backColor = backColor; foreColor = PLAIN; break;
 				}
 			} 
+
+			// Set colors if type is NOT WORLD
 			else {
 				switch (tile->type) {
 				case Tile::Type::FLOOR:
@@ -431,9 +440,9 @@ void Map::render() const {
 				case Tile::Type::TREE:
 					glyph = 'T'; backColor = backColor; foreColor = TREE; break;
 				case Tile::Type::WATER_SHALLOW:
-					glyph = '='; backColor = backColor; foreColor = WATER_SHALLOW; break;
+					glyph = ALMOST_EQUAL_TO; backColor = backColor; foreColor = WATER_SHALLOW; break;
 				case Tile::Type::WATER_DEEP:
-					glyph = '='; backColor = backColor; foreColor = WATER_DEEP; break;
+					glyph = ALMOST_EQUAL_TO; backColor = backColor; foreColor = WATER_DEEP; break;
 				default:
 					glyph = '!'; backColor = backColor; foreColor = FLOOR; break;
 				}
@@ -447,7 +456,7 @@ void Map::render() const {
 			// The calcuations result in a particually dim color, so these will brighten it up
 			static const float BRIGHTNESS_WORLD = 2.5f;
 			static const float BRIGHTNESS_TOWN = 2.5f;
-			float brightness = 2.5f;
+			float brightness = 2.0f;
 			switch (type) {
 			case Map::Type::WORLD: brightness = BRIGHTNESS_WORLD; break;
 			case Map::Type::TOWN: brightness = BRIGHTNESS_TOWN; break;
@@ -464,10 +473,8 @@ void Map::render() const {
 			// Set the backcolor to 1/4 of the foreColor for better visual appeal
 			backColor = foreColor * 0.25f;
 			
-			/*
-			Skew X and Y based on the offset for drawing
-			*/
-
+			
+			//Skew X and Y based on the offset for drawing
 			skewX = x;
 			skewY = y;
 			engine.translateToView(skewX, skewY);
