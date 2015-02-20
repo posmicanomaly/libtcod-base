@@ -346,9 +346,13 @@ void Engine::changeLevel(signed int direction, Actor *actor) {
 	if (map->type == Map::Type::WORLD) {
 		engine.fovRadius = WORLD_FOV_RADIUS;
 	}
+	if (map->type == Map::Type::TOWN) {
+		engine.fovRadius = 0;
+	}
 	else {
 		engine.fovRadius = 10;
 	}
+	std::cout << "fovRadius = " << engine.fovRadius << std::endl;
 	gui->message(TCODColor::green, "You entered %s", map->name.c_str());
 }
 

@@ -1,18 +1,44 @@
 #include "main.hpp"
 void MapFactory::makeTownMap(Map &map) {
-	// Fill with grass
-	fillWithType(map, Tile::Type::GRASS);
+	
 	placeBoundingWall(map, 5, 5, map.width - 5, map.height - 5);
+	TCODHeightMap heightMap(map.width, map.height);
+	map.heightMapMin = 256.f;
+	map.heightMapMax = 512.f;
+	float waterLevel = 50.f + map.heightMapMin;
+	TCODNoise* noise2d = new TCODNoise(2, TCOD_NOISE_DEFAULT_HURST, TCOD_NOISE_DEFAULT_LACUNARITY, map.rng, TCOD_NOISE_PERLIN);
+	heightMap.addFbm(noise2d, map.width / 32, map.height / 32, 0, 0, 8, 0.0f, 1.0f);
+	heightMap.normalize(map.heightMapMin, map.heightMapMax);
+	for (int x = 0; x < map.width; x++) {
+		for (int y = 0; y < map.height; y++) {
+			float value = heightMap.getValue(x, y);
+			Tile *tile = &map.tiles[x + y * map.width];
+			tile->variation = value;
+			//std::cout << value << std::endl;
+			if (value > waterLevel + 50) {
+				tile->type = Tile::Type::GRASS;
+			}
+			else if (value > waterLevel) {
+				tile->type = Tile::Type::WATER_SHALLOW;
+			}
+			else {
+				tile->type = Tile::Type::WATER_DEEP;
+			}
+		}
+	}
 	generateTownBuildings(map);
+	delete noise2d;
 }
 void MapFactory::makeWorldMap(Map &map) {
 
 	TCODHeightMap heightMap(map.width, map.height);
+	map.heightMapMin = 0.0f;
+	map.heightMapMax = 512.0f;
 	TCODNoise* noise2d = new TCODNoise(2, TCOD_NOISE_DEFAULT_HURST, TCOD_NOISE_DEFAULT_LACUNARITY, map.rng, TCOD_NOISE_PERLIN);
 
-
+	std::cout << map.heightMapMax << std::endl;
 	heightMap.addFbm(noise2d, map.width / 32, map.height / 32, 0, 0, 8, 0.0f, 1.0f);
-	heightMap.normalize(0, 512);
+	heightMap.normalize(map.heightMapMin, map.heightMapMax);
 	delete noise2d;
 
 
@@ -112,7 +138,7 @@ void MapFactory::makeWorldMap(Map &map) {
 	names.push_back("Town 5");
 	names.push_back("Town 6");
 	names.push_back("Town 7");
-	bool placeTowns = false;
+	bool placeTowns = true;
 	if (placeTowns) {
 		for (int i = 0; i < names.size(); i++) {
 			Tile *tile;
@@ -122,7 +148,7 @@ void MapFactory::makeWorldMap(Map &map) {
 				x = map.rng->getInt(1, map.width - 1);
 				y = map.rng->getInt(1, map.height - 1);
 				tile = &map.tiles[x + y * map.width];
-				if (tile->type == Tile::Type::PLAIN || tile->type == Tile::Type::FOREST)
+				if (tile->type == Tile::Type::PLAIN || tile->type == Tile::Type::FOREST || tile->type == Tile::Type::JUNGLE)
 					valid = true;
 				if (valid) {
 					if (map.hasFeatureAt(x, y, '*'))
@@ -249,6 +275,7 @@ void MapFactory::placeBuilding(Map &map, int x, int y, int width, int height) {
 	for (int curX = x; curX <= x + width; curX++) {
 		for (int curY = y; curY <= y + height; curY++) {
 			map.tiles[curX + curY * map.width].type = Tile::Type::WALL;
+			map.map->setProperties(curX, curY, false, false);
 		}
 	}
 }

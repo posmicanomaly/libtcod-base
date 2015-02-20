@@ -16,6 +16,8 @@ struct Tile {
 class Map : public Persistent {
 public :
     int width,height;
+	float heightMapMin;
+	float heightMapMax;
 	std::string name;
 	// Use loading for, well, loading the map, the map's load function will put back the correct type.
 	enum Type {

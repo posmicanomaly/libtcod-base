@@ -61,6 +61,12 @@ void Map::init(bool withActors) {
 	}
 	/////////////////////////////////////////////////////////////////////////////////////
     map = new TCODMap(width,height);
+	// By default set the properties of all the tiles to transparent and walkable
+	for (int x = 0; x < width; x++) {
+		for (int y = 0; y < height; y++) {
+			map->setProperties(x, y, true, true);
+		}
+	}
 	
 	/*
 	Not sure how I want to refactor the dungeon generation yet
@@ -347,9 +353,9 @@ void Map::render() const {
 	static const TCODColor WATER_SHALLOW(TCODColor::lightBlue);
 
 	// Area
-	static const TCODColor WALL(TCODColor::grey);
-	static const TCODColor FLOOR(TCODColor::white);
-	static const TCODColor GRASS(TCODColor::green);
+	static const TCODColor WALL(TCODColor::darkestGrey);
+	static const TCODColor FLOOR(TCODColor::darkerGrey);
+	static const TCODColor GRASS(TCODColor::darkestGreen);
 	static const TCODColor TREE(TCODColor::darkerGreen);
 	static const TCODColor WATER_DEEP(TCODColor::blue);
 
@@ -448,8 +454,15 @@ void Map::render() const {
 			// variation is currently set to be 1 - 10, so this gives us variation / 10 + 1, 10 would be twice the brightness
 			//if (type != Type::WORLD) {
 			//backColor = backColor * (float)((tile->variation) / (24));
-			float heightColorMult = (float)(tile->variation / 512.f );
-			foreColor = foreColor * (heightColorMult * heightColorMult) * 2.5f;
+			static const float BRIGHTNESS_WORLD = 2.5f;
+			static const float BRIGHTNESS_TOWN = 2.5f;
+			float brightness = 1.0f;
+			switch (type) {
+			case Map::Type::WORLD: brightness = BRIGHTNESS_WORLD; break;
+			case Map::Type::TOWN: brightness = BRIGHTNESS_TOWN; break;
+			}
+			float heightColorMult = (float)(tile->variation / heightMapMax);
+			foreColor = foreColor * (heightColorMult * heightColorMult) * brightness;
 			//backColor = foreColor * 0.1f;
 			//}
 			//std::cout << (float)((tile->variation) / (128.f)) << std::endl;

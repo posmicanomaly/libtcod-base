@@ -16,6 +16,8 @@ void Map::load(int level, std::string mapName) {
 	name = zip.getString();
 	type = static_cast<Map::Type>(zip.getInt());
 	seed=zip.getInt();
+	heightMapMin = zip.getFloat();
+	heightMapMax = zip.getFloat();
     init(false);
 	for (int i=0; i < width*height; i++) {
 		tiles[i].explored=zip.getInt();
@@ -56,6 +58,9 @@ void Map::save() {
 	zip.putString(name.c_str());
 	zip.putInt(type);
 	zip.putInt(seed);
+	zip.putFloat(heightMapMin);
+	zip.putFloat(heightMapMax);
+
 	for (int i=0; i < width*height; i++) {
 		zip.putInt(tiles[i].explored);
 		// Save the variation
