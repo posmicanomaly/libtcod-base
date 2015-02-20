@@ -38,7 +38,7 @@ void MapFactory::makeDungeonMap(Map &map) {
 	setMapTileProperties(map);
 }
 void MapFactory::makeTownMap(Map &map) {
-	
+
 	placeBoundingWall(map, 5, 5, map.width - 5, map.height - 5);
 	TCODHeightMap heightMap(map.width, map.height);
 	map.heightMapMin = 256.f;
@@ -129,47 +129,19 @@ void MapFactory::makeWorldMap(Map &map) {
 			MapFactory::addFeatureSeed(map, x, y, Tile::Type::FOREST, 100, 1000);
 		}
 	}
-
-	// set the map properties for mountains
-	for (int x = 0; x < map.width; x++) {
-		for (int y = 0; y < map.height; y++) {
-			if (map.tiles[x + y * map.width].type == Tile::Type::MOUNTAIN) {
-				map.map->setProperties(x, y, true, true);
-			}
-		}
-	}
-	// Hack: move stairsUp off screen
-	map.stairsUp->x = -1;
-	map.stairsUp->y = -1;
-	///////////////////////////////////
+	// Add some rivers
+	MapFactory::addRivers(map);
 	// Add some caves
-	std::vector<std::string> names;
-	names.push_back("Dungeon 1");
-	names.push_back("Dungeon 2");
-	names.push_back("Dungeon 3");
-	names.push_back("Dungeon 4");
-	names.push_back("Dungeon 5");
-	names.push_back("Dungeon 6");
-	for (int i = 0; i < names.size(); i++) {
-		Tile *tile;
-		int x, y;
-		do {
-			x = map.rng->getInt(1, map.width - 1);
-			y = map.rng->getInt(1, map.height - 1);
-			tile = &map.tiles[x + y * map.width];
-		} while (tile->type != Tile::Type::MOUNTAIN);
-		std::string name = names[i];
-
-		Actor *cave = new Actor(x, y, '*', name.c_str(), TCODColor::white);
-		cave->fovOnly = false;
-		cave->blocks = false;
-		map.actors.push(cave);
-		// Make the tile walkable
-		map.tiles[x + y * map.width].type = Tile::Type::PLAIN;
-		map.map->setProperties(x, y, true, true);
-	}
+	MapFactory::addCaves(map);
 	// Add some towns
-	names.clear();
+	MapFactory::addTowns(map);
+	
+	// Set all the map's TCODMAP properties based on Tile::Type
+	setMapTileProperties(map);
+}
+
+void MapFactory::addTowns(Map &map) {
+	std::vector<std::string> names;
 	names.push_back("Town 1");
 	names.push_back("Town 2");
 	names.push_back("Town 3");
@@ -205,7 +177,201 @@ void MapFactory::makeWorldMap(Map &map) {
 			map.map->setProperties(x, y, true, true);
 		}
 	}
-	setMapTileProperties(map);
+}
+
+void MapFactory::addCaves(Map &map) {
+	std::vector<std::string> names;
+	names.push_back("Dungeon 1");
+	names.push_back("Dungeon 2");
+	names.push_back("Dungeon 3");
+	names.push_back("Dungeon 4");
+	names.push_back("Dungeon 5");
+	names.push_back("Dungeon 6");
+	for (int i = 0; i < names.size(); i++) {
+		Tile *tile;
+		int x, y;
+		bool valid = false;
+		do {
+			// Make the target area smaller so I don't have to bounds check
+			x = map.rng->getInt(5, map.width - 5);
+			y = map.rng->getInt(5, map.height - 5);
+			tile = &map.tiles[x + y * map.width];
+			if (tile->type == Tile::Type::MOUNTAIN) {
+				Tile *up = &map.tiles[x + (y - 1) * map.width];
+				Tile *down = &map.tiles[x + (y + 1) * map.width];
+				Tile *left = &map.tiles[(x - 1) + y * map.width];
+				Tile *right = &map.tiles[(x + 1) + y * map.width];
+				std::vector<Tile*> adjacentTiles;
+				adjacentTiles.push_back(up);
+				adjacentTiles.push_back(down);
+				adjacentTiles.push_back(left);
+				adjacentTiles.push_back(right);
+				for (int i = 0; i < adjacentTiles.size(); i++) {
+					Tile *cur = adjacentTiles[i];
+					switch (cur->type) {
+					case Tile::Type::PLAIN:
+					case Tile::Type::FOREST:
+					case Tile::Type::LAKE:
+					case Tile::Type::DESERT:
+					case Tile::Type::JUNGLE:
+					case Tile::Type::HILL:
+						valid = true; break;
+					}
+					if (valid) {
+						break;
+					}
+				}
+			}
+		} while (!valid);
+		std::string name = names[i];
+
+		Actor *cave = new Actor(x, y, '*', name.c_str(), TCODColor::white);
+		cave->fovOnly = false;
+		cave->blocks = false;
+		map.actors.push(cave);
+		// Make the tile walkable
+		map.tiles[x + y * map.width].type = Tile::Type::PLAIN;
+		map.map->setProperties(x, y, true, true);
+	}
+}
+
+void MapFactory::addRivers(Map &map) {
+	for (int i = 0; i < 7; i++) {
+		std::cout << "creating river " << i << std::endl;
+		int x, y;
+		Tile *tile;
+		do {
+			x = map.rng->getInt(5, map.width - 5);
+			y = map.rng->getInt(5, map.height - 5);
+			tile = &map.tiles[x + y * map.width];
+		} while (tile->type != Tile::Type::MOUNTAIN);
+		int nextx, nexty;
+		int xd, yd;
+		Tile *lowest = tile;
+		bool riverDone = false;
+		std::cout << "\tflowing" << std::endl;
+
+		static const enum DIR {
+			up, down, left, right
+		};
+		int curDirection = DIR::up;
+		int prevDirection = DIR::up;
+		while (!riverDone) {
+			if (lowest->type == Tile::Type::WATER_SHALLOW || lowest->type == Tile::Type::OCEAN || lowest->type == Tile::Type::LAKE) {
+				riverDone = true;
+				break;
+			}
+			std::cout << ".";
+			lowest->type = Tile::Type::RIVER;
+			//			// up and down
+			//		case 0: glyph = 186; break;
+			//			// left and right
+			//		case 1:	glyph = 205; break;
+			//			// upper left
+			//		case 2: glyph = 201; break;
+			//			// upper right
+			//		case 3: glyph = 187; break;
+			//			// lower left
+			//		case 4: glyph = 200; break;
+			//			// lower right
+			//		case 5: glyph = 188; break;
+			int style;
+			switch (curDirection) {
+			case DIR::up:
+				if (prevDirection == DIR::left) {
+					style = 4;
+				}
+				else if (prevDirection == DIR::right) {
+					style = 5;
+				}
+				else {
+					style = 0;
+				}
+				break;
+			case DIR::down:
+				if (prevDirection == DIR::left) {
+					style = 2;
+				}
+				else if (prevDirection == DIR::right) {
+					style = 3;
+				}
+				else {
+					style = 0;
+				}
+				break;
+			case DIR::left:
+				if (prevDirection == DIR::up) {
+					style = 5;
+				}
+				else if (prevDirection == DIR::down) {
+					style = 2;
+				}
+				else {
+					style = 1;
+				}
+				break;
+			case DIR::right:
+				if (prevDirection == DIR::up) {
+					style = 5;
+				}
+				else if (prevDirection == DIR::down) {
+					style = 3;
+				}
+				else {
+					style = 1;
+				}
+				break;
+			}
+			// My river cornering isn't working right now, use -1 for default waves glyph
+			style = -1;
+			lowest->style = style;
+			prevDirection = curDirection;
+			Tile *up = NULL;
+			Tile *down = NULL;
+			Tile *left = NULL;
+			Tile *right = NULL;
+			if (y - 1 >= 0)
+				up = &map.tiles[x + (y - 1) * map.width];
+			if (y + 1 < map.height)
+				down = &map.tiles[x + (y + 1) * map.width];
+			if (x - 1 >= 0)
+				left = &map.tiles[(x - 1) + y * map.width];
+			if (x + 1 < map.width)
+				right = &map.tiles[(x + 1) + y * map.width];
+			std::vector<Tile*> adjacentTiles;
+			adjacentTiles.push_back(up);
+			adjacentTiles.push_back(down);
+			adjacentTiles.push_back(left);
+			adjacentTiles.push_back(right);
+			int lowestIndex = -1;
+			float lowestValue = 999;
+			for (int i = 0; i < adjacentTiles.size(); i++) {
+				Tile *cur = adjacentTiles[i];
+				if (cur == NULL)
+					continue;
+				if (cur->type == Tile::Type::RIVER)
+					continue;
+				if (cur->variation < lowestValue) {
+					lowestValue = cur->variation;
+					lowest = cur;
+					lowestIndex = i;
+				}
+
+			}
+
+			if (lowestValue == 999 && lowestIndex == -1)
+				break;
+			switch (lowestIndex) {
+			case -1: riverDone = true; break;
+			case 0: y--; curDirection = DIR::up; break;
+			case 1:	y++; curDirection = DIR::down; break;
+			case 2:	x--; curDirection = DIR::left; break;
+			case 3:	x++; curDirection = DIR::right; break;
+			}
+			//style = lowestIndex;
+		}
+		std::cout << std::endl;
+	}
 }
 
 /*
@@ -213,7 +379,7 @@ Adds <amount> of <type> to <map>
 for each amount, use a random strength to spread it around
 */
 void MapFactory::addFeatureSeed(Map &map, int x, int y, Tile::Type type, int minStrength, int maxStrength) {
-	
+
 	// set tile to type
 	map.tiles[x + y * map.width].type = type;
 

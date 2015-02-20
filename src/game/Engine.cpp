@@ -34,7 +34,7 @@ void Engine::init() {
 		playerStartX = map->stairsUp->x;
 		playerStartY = map->stairsUp->y;
 	}
-	player = new Actor(playerStartX, playerStartY, '@', "player", TCODColor::white);
+	player = new Actor(playerStartX, playerStartY, '@', "player", TCODColor::magenta);
 	////////////////////////////////////////////////////////////////////////////////////////
 
 	player->destructible = new PlayerDestructible(30, 2, "your cadaver");

@@ -5,6 +5,9 @@ public:
 	static void makeTownMap(Map &map);
 	static void makeDungeonMap(Map &map);
 private:
+	static void addRivers(Map &map);
+	static void addCaves(Map &map);
+	static void addTowns(Map &map);
 	static void addFeatureSeed(Map &map, int x, int y, Tile::Type type, int minStrength, int maxStrength);
 	static void fillWithType(Map &map, Tile::Type type);
 	static void generateTownBuildings(Map &map);

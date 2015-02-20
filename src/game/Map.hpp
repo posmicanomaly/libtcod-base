@@ -1,16 +1,17 @@
 struct Tile {
     bool explored; // has the player already seen this tile ?
 	int variation;
+	int style;
 	enum Type {
 		// World map
-		PLAIN, FOREST, MOUNTAIN, HILL, JUNGLE, DESERT, GLACIER, TUNDRA, OCEAN, LAKE, SWAMP,
+		PLAIN, FOREST, MOUNTAIN, HILL, JUNGLE, DESERT, GLACIER, TUNDRA, OCEAN, LAKE, SWAMP, RIVER,
 		// Area maps
 		FLOOR, WALL, GRASS, TREE, WATER_SHALLOW, WATER_DEEP
 	} type;
 	enum Effect {
 		NONE, SCORCHED, BLOODY
 	} effect;
-    Tile() : explored(false), type(WALL), effect(NONE) {}
+    Tile() : explored(false), type(WALL), effect(NONE), style(0) {}
 };
  
 class Map : public Persistent {

@@ -21,6 +21,8 @@ void Map::load(int level, std::string mapName) {
     init(false);
 	for (int i=0; i < width*height; i++) {
 		tiles[i].explored=zip.getInt();
+		// Load the style
+		tiles[i].style = zip.getInt();
 		// Load the variation
 		tiles[i].variation = zip.getInt();
 		// Load the tile type
@@ -63,6 +65,8 @@ void Map::save() {
 
 	for (int i=0; i < width*height; i++) {
 		zip.putInt(tiles[i].explored);
+		// Save the style
+		zip.putInt(tiles[i].style);
 		// Save the variation
 		zip.putInt(tiles[i].variation);
 		// Save the tile type;
