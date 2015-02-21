@@ -72,6 +72,9 @@ void Engine::update() {
 		save();
 		load(true);
 	}
+	else if (lastKey.vk == TCODK_PRINTSCREEN) {
+		TCODSystem::saveScreenshot(NULL);
+	}
 	// Set out important mouse information
 	translateMouseToView();
 	if (mouse.lbutton_pressed) {

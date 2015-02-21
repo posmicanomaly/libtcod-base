@@ -14,7 +14,7 @@ void MapFactory::makeDungeonMap(Map &map) {
 	TCODHeightMap heightMap(map.width, map.height);
 	map.heightMapMin = 256.f;
 	map.heightMapMax = 512.f;
-	float waterLevel = 10.f + map.heightMapMin;
+	float waterLevel = 10.0f + map.heightMapMin;
 	TCODNoise* noise2d = new TCODNoise(2, TCOD_NOISE_DEFAULT_HURST, TCOD_NOISE_DEFAULT_LACUNARITY, map.rng, TCOD_NOISE_PERLIN);
 	heightMap.addFbm(noise2d, map.width / 32, map.height / 32, 0, 0, 8, 0.0f, 1.0f);
 	heightMap.normalize(map.heightMapMin, map.heightMapMax);
@@ -43,7 +43,7 @@ void MapFactory::makeTownMap(Map &map) {
 	TCODHeightMap heightMap(map.width, map.height);
 	map.heightMapMin = 256.f;
 	map.heightMapMax = 512.f;
-	float waterLevel = 50.f + map.heightMapMin;
+	float waterLevel = 25.f + map.heightMapMin;
 	TCODNoise* noise2d = new TCODNoise(2, TCOD_NOISE_DEFAULT_HURST, TCOD_NOISE_DEFAULT_LACUNARITY, map.rng, TCOD_NOISE_PERLIN);
 	heightMap.addFbm(noise2d, map.width / 32, map.height / 32, 0, 0, 8, 0.0f, 1.0f);
 	heightMap.normalize(map.heightMapMin, map.heightMapMax);
@@ -70,6 +70,13 @@ void MapFactory::makeTownMap(Map &map) {
 	//MapFactory::addTrees(map, 200);
 	generateTownBuildings(map);
 	setMapTileProperties(map);
+	for (int x = 0; x < map.width; x++) {
+		for (int y = 0; y < map.height; y++) {
+			if (map.tiles[x + y * map.width].type == Tile::Type::WALL) {
+				map.map->setProperties(x, y, true, false);
+			}
+		}
+	}
 	delete noise2d;
 }
 void MapFactory::makeWorldMap(Map &map) {
@@ -103,9 +110,9 @@ void MapFactory::makeWorldMap(Map &map) {
 			}
 			else if (value > 270){
 				// Beach only at this time
-				tile->type = Tile::Type::DESERT;
+				tile->type = Tile::Type::SHORE;
 			}
-			else if (value > 256) {
+			else if (value > 245) {
 				// Shore / low lakes
 				tile->type = Tile::Type::WATER_SHALLOW;
 			}
@@ -113,7 +120,8 @@ void MapFactory::makeWorldMap(Map &map) {
 				tile->type = Tile::Type::OCEAN;
 		}
 	}
-
+	// Seed some deserts
+	MapFactory::addDeserts(map, 64);
 	// Plant some trees
 	MapFactory::addTrees(map, 16);
 	// Add some rivers
@@ -122,9 +130,24 @@ void MapFactory::makeWorldMap(Map &map) {
 	MapFactory::addCaves(map);
 	// Add some towns
 	MapFactory::addTowns(map);
-	
+
 	// Set all the map's TCODMAP properties based on Tile::Type
 	setMapTileProperties(map);
+}
+
+void MapFactory::addDeserts(Map &map, int divisor) {
+	Tile::Type baseType = Tile::Type::PLAIN;
+	for (int i = 0; i < map.width / divisor * map.height / divisor; i++) {
+		bool jungle = false;
+		int x, y;
+		do {
+			x = map.rng->getInt(1, map.width - 1);
+			y = map.rng->getInt(1, map.height - 1);
+		} while (map.tiles[x + y * map.width].type != baseType);
+
+		MapFactory::addFeatureSeed(map, x, y, Tile::Type::DESERT, 10, 1000);
+
+	}
 }
 
 void MapFactory::addTrees(Map &map, int divisor) {
@@ -149,10 +172,10 @@ void MapFactory::addTrees(Map &map, int divisor) {
 			y = map.rng->getInt(1, map.height - 1);
 		} while (map.tiles[x + y * map.width].type != baseType);
 		if (jungle && map.type == Map::Type::WORLD) {
-			MapFactory::addFeatureSeed(map, x, y, Tile::Type::JUNGLE, 100, 1000);
+			MapFactory::addFeatureSeed(map, x, y, Tile::Type::JUNGLE, 10, 1000);
 		}
 		else {
-			MapFactory::addFeatureSeed(map, x, y, treeType, 100, 1000);
+			MapFactory::addFeatureSeed(map, x, y, treeType, 10, 1000);
 		}
 	}
 }
@@ -443,6 +466,7 @@ void MapFactory::addFeatureSeed(Map &map, int x, int y, Tile::Type type, int min
 			case Tile::Type::OCEAN:
 			case Tile::Type::WATER_SHALLOW:
 			case Tile::Type::DESERT:
+			case Tile::Type::SHORE:
 			case Tile::Type::LAKE: changeType = false; break;
 			}
 			if (changeType) {
@@ -471,14 +495,14 @@ void MapFactory::fillWithType(Map &map, Tile::Type type) {
 }
 
 void MapFactory::generateTownBuildings(Map &map) {
-	int buildings = 8;
+	int buildings = 25;
 	for (int i = 0; i < buildings; i++) {
 		int x, y;
 		do {
 			x = map.rng->getInt(6, map.width - 7);
 			y = map.rng->getInt(6, map.height - 7);
-		} while (!checkBuildingPlacement(map, x, y, 3, 3));
-		placeBuilding(map, x, y, 3, 3);
+		} while (!checkBuildingPlacement(map, x, y, 5, 5));
+		placeBuilding(map, x, y, 5, 5);
 	}
 }
 

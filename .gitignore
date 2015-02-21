@@ -3,3 +3,4 @@ Debug/
 *.filters
 *.vcxproj
 save/
+*.png

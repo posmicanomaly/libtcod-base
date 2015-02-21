@@ -371,7 +371,8 @@ void Map::render() const {
 	static const TCODColor MOUNTAIN(TCODColor::darkerGrey);
 	static const TCODColor HILL(TCODColor::darkestOrange);
 	static const TCODColor JUNGLE(TCODColor::darkerGreen);
-	static const TCODColor DESERT(TCODColor::lightestOrange);
+	static const TCODColor SHORE(TCODColor::lightestOrange);
+	static const TCODColor DESERT(TCODColor::lighterOrange);
 	static const TCODColor GLACIER(TCODColor::blue);
 	static const TCODColor TUNDRA(TCODColor::green);
 	static const TCODColor OCEAN(TCODColor::blue);
@@ -384,9 +385,9 @@ void Map::render() const {
 
 	// Area
 	static const TCODColor WALL(TCODColor::lightGrey);
-	static const TCODColor FLOOR(TCODColor::grey);
+	static const TCODColor FLOOR(TCODColor::darkGrey);
 	static const TCODColor GRASS(TCODColor::darkestGreen);
-	static const TCODColor TREE(TCODColor::darkerGreen);
+	static const TCODColor TREE(TCODColor::darkestGreen);
 	static const TCODColor WATER_DEEP(TCODColor::blue);
 
 	// Get the drawing offsets
@@ -437,6 +438,8 @@ void Map::render() const {
 					glyph = JUNLE_J; backColor = backColor; foreColor = JUNGLE; break;
 				case Tile::Type::DESERT:
 					glyph = ALMOST_EQUAL_TO; backColor = backColor; foreColor = DESERT; break;
+				case Tile::Type::SHORE:
+					glyph = 240; backColor = backColor; foreColor = SHORE; break;
 				case Tile::Type::GLACIER:
 					glyph = '='; backColor = backColor; foreColor = GLACIER; break;
 				case Tile::Type::TUNDRA:
@@ -452,7 +455,13 @@ void Map::render() const {
 				case Tile::Type::LAKE:
 					glyph = '='; backColor = backColor; foreColor = LAKE; break;
 				case Tile::Type::WATER_SHALLOW:
-					glyph = ALMOST_EQUAL_TO; backColor = backColor; foreColor = WATER_SHALLOW; break;
+					if (tile->style == 0) {
+						glyph = ALMOST_EQUAL_TO;
+					}
+					else {
+						glyph = '=';
+					}
+					backColor = backColor; foreColor = WATER_SHALLOW; break;
 				case Tile::Type::RIVER:
 					switch (tile->style) {
 					case 0: glyph = ALMOST_EQUAL_TO; break;

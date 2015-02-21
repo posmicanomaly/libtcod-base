@@ -5,6 +5,7 @@ public:
 	static void makeTownMap(Map &map);
 	static void makeDungeonMap(Map &map);
 private:
+	static void addDeserts(Map &map, int divisor);
 	static void addTrees(Map &map, int divisor);
 	static void addRivers(Map &map);
 	static void addCaves(Map &map);
