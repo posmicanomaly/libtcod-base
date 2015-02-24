@@ -25,6 +25,8 @@ void Map::load(int level, std::string mapName) {
 		tiles[i].style = zip.getInt();
 		// Load the variation
 		tiles[i].variation = zip.getInt();
+		// Load the temperature
+		tiles[i].variation = zip.getFloat();
 		// Load the tile type
 		tiles[i].type = static_cast<Tile::Type>(zip.getInt());
 	}
@@ -69,6 +71,8 @@ void Map::save() {
 		zip.putInt(tiles[i].style);
 		// Save the variation
 		zip.putInt(tiles[i].variation);
+		// Save the temperature
+		zip.putFloat(tiles[i].temperature);
 		// Save the tile type;
 		zip.putInt(tiles[i].type);
 	}

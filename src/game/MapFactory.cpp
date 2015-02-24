@@ -131,8 +131,39 @@ void MapFactory::makeWorldMap(Map &map) {
 	// Add some towns
 	MapFactory::addTowns(map);
 
+	// Set temperatures
+	MapFactory::calcTemperatures(map);
+
 	// Set all the map's TCODMAP properties based on Tile::Type
 	setMapTileProperties(map);
+}
+
+void MapFactory::calcTemperatures(Map &map) {
+	for (int x = 0; x < map.width; x++) {
+		for (int y = 0; y < map.height; y++) {
+			Tile *t = &map.tiles[x + y * map.width];
+			float height = t->variation;
+			// Pole temperatures, Y axis
+			float defaultTemp = 110;
+			float lowestTemp = -40;
+			float difference = 0;
+
+			difference = abs(map.height / 2 - y) * 1.5f;
+			float temp = defaultTemp - difference;
+			if (height < 245) {
+				height = 245;
+			}
+			height -= 245;
+			temp -= height / 3;
+			if (temp < lowestTemp) {
+				temp = lowestTemp;
+			}
+			t->temperature = temp;
+			if (temp <= 0) {
+				t->effect = Tile::Effect::FROZEN;
+			}
+		}
+	}
 }
 
 void MapFactory::addDeserts(Map &map, int divisor) {
@@ -145,7 +176,7 @@ void MapFactory::addDeserts(Map &map, int divisor) {
 			y = map.rng->getInt(1, map.height - 1);
 		} while (map.tiles[x + y * map.width].type != baseType);
 
-		MapFactory::addFeatureSeed(map, x, y, Tile::Type::DESERT, 10, 1000);
+		MapFactory::addFeatureSeed(map, x, y, Tile::Type::DESERT, 1, 1000);
 
 	}
 }
@@ -172,10 +203,10 @@ void MapFactory::addTrees(Map &map, int divisor) {
 			y = map.rng->getInt(1, map.height - 1);
 		} while (map.tiles[x + y * map.width].type != baseType);
 		if (jungle && map.type == Map::Type::WORLD) {
-			MapFactory::addFeatureSeed(map, x, y, Tile::Type::JUNGLE, 10, 1000);
+			MapFactory::addFeatureSeed(map, x, y, Tile::Type::JUNGLE, 1, 1000);
 		}
 		else {
-			MapFactory::addFeatureSeed(map, x, y, treeType, 10, 1000);
+			MapFactory::addFeatureSeed(map, x, y, treeType, 1, 1000);
 		}
 	}
 }

@@ -1,6 +1,7 @@
 struct Tile {
     bool explored; // has the player already seen this tile ?
 	int variation;
+	float temperature;
 	int style;
 	enum Type {
 		// World map
@@ -9,9 +10,9 @@ struct Tile {
 		FLOOR, WALL, GRASS, TREE, WATER_SHALLOW, WATER_DEEP
 	} type;
 	enum Effect {
-		NONE, SCORCHED, BLOODY
+		NONE, SCORCHED, BLOODY, FROZEN
 	} effect;
-    Tile() : explored(false), type(WALL), effect(NONE), style(0) {}
+    Tile() : explored(false), type(WALL), effect(NONE), style(0), temperature(0.0f) {}
 };
  
 class Map : public Persistent {

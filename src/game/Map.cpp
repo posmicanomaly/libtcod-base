@@ -467,11 +467,11 @@ void Map::render() const {
 					case 0: glyph = ALMOST_EQUAL_TO; break;
 					case 1: glyph = '='; break;
 						// cornering broken, use this
-					//case -1: glyph = ALMOST_EQUAL_TO; break;
+						//case -1: glyph = ALMOST_EQUAL_TO; break;
 						// up and down
-					//case 0: glyph = 186; break;
+						//case 0: glyph = 186; break;
 						// left and right
-					//case 1:	glyph = 205; break;
+						//case 1:	glyph = 205; break;
 						// upper left
 					case 2: glyph = 201; break;
 						// upper right
@@ -540,14 +540,21 @@ void Map::render() const {
 			// Set the backcolor to 1/4 of the foreColor for better visual appeal
 			backColor = foreColor * 0.25f;
 
+			// TEMPERATURE TEST
+
+			//backColor = TCODColor::red * (tile->temperature / 100);
+
 
 			//Skew X and Y based on the offset for drawing
 			skewX = x;
 			skewY = y;
 			engine.translateToView(skewX, skewY);
 
-			if (tiles[x + y * width].effect == Tile::Effect::SCORCHED) {
-				backColor = TCODColor::darkestOrange;
+			switch (tile->effect) {
+			case Tile::Effect::FROZEN:
+				if (tile->type != Tile::Type::OCEAN) {
+					backColor = TCODColor::white * (abs(tile->temperature) / (110 / 2));
+				}
 			}
 			if (isInFov(x, y)) {
 				TCODConsole::root->setChar(skewX, skewY, glyph);
