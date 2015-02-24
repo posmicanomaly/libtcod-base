@@ -120,6 +120,9 @@ void MapFactory::makeWorldMap(Map &map) {
 				tile->type = Tile::Type::OCEAN;
 		}
 	}
+
+	// Set temperatures
+	MapFactory::calcTemperatures(map);
 	// Seed some deserts
 	MapFactory::addDeserts(map, 64);
 	// Plant some trees
@@ -131,8 +134,7 @@ void MapFactory::makeWorldMap(Map &map) {
 	// Add some towns
 	MapFactory::addTowns(map);
 
-	// Set temperatures
-	MapFactory::calcTemperatures(map);
+	
 
 	// Set all the map's TCODMAP properties based on Tile::Type
 	setMapTileProperties(map);
@@ -195,19 +197,20 @@ void MapFactory::addTrees(Map &map, int divisor) {
 		bool jungle = false;
 		int x, y;
 		do {
-			int jungleChance = map.rng->getInt(0, 100);
-			if (jungleChance < 25) {
-				jungle = true;
-			}
 			x = map.rng->getInt(1, map.width - 1);
 			y = map.rng->getInt(1, map.height - 1);
 		} while (map.tiles[x + y * map.width].type != baseType);
-		if (jungle && map.type == Map::Type::WORLD) {
-			MapFactory::addFeatureSeed(map, x, y, Tile::Type::JUNGLE, 1, 1000);
+		Tile *t = &map.tiles[x + y * map.width];
+		if (map.type == Map::Type::WORLD) {
+			if (t->temperature > 80) {
+				treeType = Tile::Type::JUNGLE;
+			}
+			else {
+				treeType = Tile::Type::FOREST;
+			}
 		}
-		else {
-			MapFactory::addFeatureSeed(map, x, y, treeType, 1, 1000);
-		}
+		MapFactory::addFeatureSeed(map, x, y, treeType, 1, 1000);
+		
 	}
 }
 
