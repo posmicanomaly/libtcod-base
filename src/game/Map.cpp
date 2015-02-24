@@ -552,9 +552,16 @@ void Map::render() const {
 
 			switch (tile->effect) {
 			case Tile::Effect::FROZEN:
-				if (tile->type != Tile::Type::OCEAN) {
-					backColor = TCODColor::white * (abs(tile->temperature) / (110 / 2));
+				if (tile->type != Tile::Type::OCEAN && tile->type != Tile::Type::WATER_SHALLOW) {
+					backColor = TCODColor::white * (abs(tile->temperature) / (40 / 2));
 				}
+				else if (tile->type == Tile::Type::OCEAN) {
+					backColor = TCODColor::lightBlue * (abs(tile->temperature) / (40 / 2));
+				}
+				else if (tile->type == Tile::Type::WATER_SHALLOW) {
+					backColor = TCODColor::lightestBlue * (abs(tile->temperature) / (40 / 2));
+				}
+				break;
 			}
 			if (isInFov(x, y)) {
 				TCODConsole::root->setChar(skewX, skewY, glyph);
