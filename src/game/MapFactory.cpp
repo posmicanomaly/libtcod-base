@@ -1,4 +1,8 @@
 #include "main.hpp"
+const float MapFactory::DESERT_TEMPERATURE = 90.0f;
+const float MapFactory::JUNGLE_TEMPERATURE = 75.0f;
+const float MapFactory::FREEZING_TEMPERATURE = 0.0f;
+
 void MapFactory::setMapTileProperties(Map &map) {
 	for (int x = 0; x < map.width; x++) {
 		for (int y = 0; y < map.height; y++) {
@@ -161,7 +165,7 @@ void MapFactory::calcTemperatures(Map &map) {
 				temp = lowestTemp;
 			}
 			t->temperature = temp;
-			if (temp <= 0) {
+			if (temp <= MapFactory::FREEZING_TEMPERATURE) {
 				t->effect = Tile::Effect::FROZEN;
 			}
 		}
@@ -171,13 +175,19 @@ void MapFactory::calcTemperatures(Map &map) {
 void MapFactory::addDeserts(Map &map, int divisor) {
 	Tile::Type baseType = Tile::Type::PLAIN;
 	for (int i = 0; i < map.width / divisor * map.height / divisor; i++) {
-		bool jungle = false;
 		int x, y;
+		Tile *t;
+		bool valid = false;
 		do {
 			x = map.rng->getInt(1, map.width - 1);
 			y = map.rng->getInt(1, map.height - 1);
-		} while (map.tiles[x + y * map.width].type != baseType);
-
+			t = &map.tiles[x + y * map.width];
+			if (t->type == baseType) {
+				if (t->temperature >= MapFactory::DESERT_TEMPERATURE) {
+					valid = true;
+				}
+			}
+		} while (!valid);
 		MapFactory::addFeatureSeed(map, x, y, Tile::Type::DESERT, 1, 1000);
 
 	}
@@ -202,7 +212,7 @@ void MapFactory::addTrees(Map &map, int divisor) {
 		} while (map.tiles[x + y * map.width].type != baseType);
 		Tile *t = &map.tiles[x + y * map.width];
 		if (map.type == Map::Type::WORLD) {
-			if (t->temperature > 80) {
+			if (t->temperature >= MapFactory::JUNGLE_TEMPERATURE) {
 				treeType = Tile::Type::JUNGLE;
 			}
 			else {

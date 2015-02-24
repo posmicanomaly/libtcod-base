@@ -4,6 +4,11 @@ public:
 	static void makeWorldMap(Map &map);
 	static void makeTownMap(Map &map);
 	static void makeDungeonMap(Map &map);
+
+	static const float DESERT_TEMPERATURE;
+	static const float JUNGLE_TEMPERATURE;
+	static const float FREEZING_TEMPERATURE;
+
 private:
 	static void calcTemperatures(Map &map);
 	static void addDeserts(Map &map, int divisor);

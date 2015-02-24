@@ -559,7 +559,7 @@ void Map::render() const {
 					backColor = TCODColor::lightBlue * (abs(tile->temperature) / (40 / 2));
 				}
 				else if (tile->type == Tile::Type::WATER_SHALLOW) {
-					backColor = TCODColor::lightestBlue * (abs(tile->temperature) / (40 / 2));
+					backColor = TCODColor::lighterBlue * (abs(tile->temperature) / (40 / 2));
 				}
 				break;
 			}
