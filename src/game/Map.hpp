@@ -2,6 +2,7 @@ struct Tile {
     bool explored; // has the player already seen this tile ?
 	int variation;
 	float temperature;
+	float weather;
 	int style;
 	enum Type {
 		// World map

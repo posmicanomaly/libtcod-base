@@ -42,7 +42,6 @@ void MapFactory::makeDungeonMap(Map &map) {
 	setMapTileProperties(map);
 }
 void MapFactory::makeTownMap(Map &map) {
-
 	//placeBoundingWall(map, 5, 5, map.width - 5, map.height - 5);
 	TCODHeightMap heightMap(map.width, map.height);
 	map.heightMapMin = 256.f;
@@ -127,6 +126,7 @@ void MapFactory::makeWorldMap(Map &map) {
 
 	// Set temperatures
 	MapFactory::calcTemperatures(map);
+	MapFactory::calcWeather(map);
 	// Seed some deserts
 	MapFactory::addDeserts(map, 64);
 	// Plant some trees
@@ -166,29 +166,63 @@ void MapFactory::calcTemperatures(Map &map) {
 			}
 			t->temperature = temp;
 			if (temp <= MapFactory::FREEZING_TEMPERATURE) {
-				t->effect = Tile::Effect::FROZEN;
+				if (t->type != Tile::Type::OCEAN)
+					t->effect = Tile::Effect::FROZEN;
 			}
+		}
+	}
+}
+
+void MapFactory::calcWeather(Map &map) {
+	TCODHeightMap weatherMap(map.width, map.height);
+	TCODNoise* noise2d = new TCODNoise(2, 1.0f, 20.0f, map.rng, TCOD_NOISE_PERLIN);
+	weatherMap.addFbm(noise2d, map.width / 16, map.height / 16, 0, 0, 8, 0.0f, 1.0f);
+
+	// Normalize lower than 0 to give more room for deserts and also limits the weather above oceans
+	weatherMap.normalize(-100, 100);
+	delete noise2d;
+	for (int x = 0; x < map.width; x++) {
+		for (int y = 0; y < map.height; y++) {
+			Tile *t = &map.tiles[x + y * map.width];
+			float height = t->variation;
+			// Rainfall amount, < 0 is none, meaning dry
+			t->weather = weatherMap.getValue(x, y);
 		}
 	}
 }
 
 void MapFactory::addDeserts(Map &map, int divisor) {
 	Tile::Type baseType = Tile::Type::PLAIN;
+	int tries;
+	int maxTries = 1000;
 	for (int i = 0; i < map.width / divisor * map.height / divisor; i++) {
+		tries = 0;
 		int x, y;
 		Tile *t;
 		bool valid = false;
 		do {
+			if (tries > maxTries) {
+				valid = false;
+				break;
+			}
 			x = map.rng->getInt(1, map.width - 1);
 			y = map.rng->getInt(1, map.height - 1);
 			t = &map.tiles[x + y * map.width];
 			if (t->type == baseType) {
 				if (t->temperature >= MapFactory::DESERT_TEMPERATURE) {
-					valid = true;
+					if (t->weather <= 10)
+						valid = true;
+					else
+						std::cout << "weather: " << t->weather << std::endl;
 				}
 			}
+			tries++;
 		} while (!valid);
-		MapFactory::addFeatureSeed(map, x, y, Tile::Type::DESERT, 1, 1000);
+		if (valid)
+			MapFactory::addFeatureSeed(map, x, y, Tile::Type::DESERT, 1, 1000);
+		else {
+			std::cout << "desert seed " << i << " failed" << std::endl;
+		}
 
 	}
 }
@@ -297,10 +331,13 @@ void MapFactory::addCaves(Map &map) {
 					case Tile::Type::PLAIN:
 					case Tile::Type::FOREST:
 					case Tile::Type::LAKE:
-					case Tile::Type::DESERT:
 					case Tile::Type::JUNGLE:
 					case Tile::Type::HILL:
 						valid = true; break;
+					case Tile::Type::DESERT:
+						if (cur->weather <= 10 && cur->temperature <= DESERT_TEMPERATURE) {
+							valid = true; break;
+						}
 					}
 					if (valid) {
 						break;

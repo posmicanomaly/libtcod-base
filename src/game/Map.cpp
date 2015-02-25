@@ -561,7 +561,7 @@ void Map::render() const {
 			skewY = y;
 			engine.translateToView(skewX, skewY);
 
-			if (type == Type::WORLD) {
+			if (type == Type::WORLD || type == Type::TOWN) {
 				switch (tile->effect) {
 				case Tile::Effect::FROZEN:
 					if (tile->type != Tile::Type::OCEAN && tile->type != Tile::Type::WATER_SHALLOW) {
@@ -576,6 +576,8 @@ void Map::render() const {
 					break;
 				}
 			}
+			// Weather test
+			backColor = TCODColor::darkGreen * (tile->weather / 100);
 			if (isInFov(x, y)) {
 				TCODConsole::root->setChar(skewX, skewY, glyph);
 				TCODConsole::root->setCharBackground(skewX, skewY,

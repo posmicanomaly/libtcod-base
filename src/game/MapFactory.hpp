@@ -10,6 +10,7 @@ public:
 	static const float FREEZING_TEMPERATURE;
 
 private:
+	static void calcWeather(Map &map);
 	static void calcTemperatures(Map &map);
 	static void addDeserts(Map &map, int divisor);
 	static void addTrees(Map &map, int divisor);
