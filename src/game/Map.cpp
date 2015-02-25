@@ -352,6 +352,17 @@ void Map::setTileEffect(int x, int y, Tile::Effect effect) {
 	tiles[x + y * width].effect = effect;
 }
 
+void Map::getRandomCoords(int *x, int *y) {
+	*x = rng->getInt(0, width - 1);
+	*y = rng->getInt(0, height - 1);
+}
+Tile *Map::getTile(int x, int y) {
+	if (x < 0 || x >= width || y < 0 || y >= height) {
+		return NULL;
+	}
+	return &tiles[x + y * width];
+}
+
 void Map::render() const {
 	/*
 	Color constants

@@ -34,6 +34,8 @@ public :
     bool canWalk(int x, int y) const;
     void computeFov();
     void render() const;
+	void getRandomCoords(int *x, int *y);
+	Tile *getTile(int x, int y);
 	TCODList<Actor *> actors;
 	bool hasFeatureAt(Actor *owner, const char featureGlyph) const;
 	bool hasFeatureAt(int x, int y, const char featureGlyph) const;

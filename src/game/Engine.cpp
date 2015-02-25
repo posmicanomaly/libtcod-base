@@ -16,33 +16,51 @@ screenWidth(screenWidth), screenHeight(screenHeight), level(0) {
 }
 
 void Engine::init() {
-	std::cout << "Engine::init()" << std::endl;
+	dbglog("Engine::init()\n");
 	// Reset level here?
 	level = 0;
 	fovRadius = WORLD_FOV_RADIUS;
 	map = new Map(MAP_WIDTH, MAP_HEIGHT, Map::Type::WORLD);
 	map->init(true);
 
-	// Hack: player doesn't start on up stairs if its the world map, start them in center;
 	int playerStartX, playerStartY;
 	if (map->type == Map::Type::WORLD) {
-		playerStartX = map->width / 2;
-		playerStartY = map->height / 2;
-
+		Tile *startTile;
+		bool valid;
+		do {
+			valid = true;
+			map->getRandomCoords(&playerStartX, &playerStartY);
+			startTile = map->getTile(playerStartX, playerStartY);
+			if (startTile == NULL) {
+				valid = false;
+				dbglog("Engine::init() startTile NULL\n");
+			}
+			if (valid) {
+				switch (startTile->type) {
+				case Tile::Type::MOUNTAIN:
+				case Tile::Type::OCEAN:
+				case Tile::Type::WATER_SHALLOW:
+					valid = false;
+					break;
+				}
+			}
+		} while (!valid);
 	}
 	else {
 		playerStartX = map->stairsUp->x;
 		playerStartY = map->stairsUp->y;
 	}
+	// Player setup
 	player = new Actor(playerStartX, playerStartY, '@', "player", TCODColor::magenta);
-	////////////////////////////////////////////////////////////////////////////////////////
-
 	player->destructible = new PlayerDestructible(30, 2, "your cadaver");
 	player->attacker = new Attacker(5);
 	player->ai = new PlayerAi();
 	player->container = new Container(26);
+
+	// Add player to map
 	map->actors.push(player);
 
+	// Welcome message
 	gui->message(TCODColor::red,
 		"Libtcod-base: Roguelike engine by Posmicanomaly2");
 	gameStatus = STARTUP;
