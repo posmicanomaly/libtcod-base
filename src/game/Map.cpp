@@ -561,18 +561,20 @@ void Map::render() const {
 			skewY = y;
 			engine.translateToView(skewX, skewY);
 
-			switch (tile->effect) {
-			case Tile::Effect::FROZEN:
-				if (tile->type != Tile::Type::OCEAN && tile->type != Tile::Type::WATER_SHALLOW) {
-					backColor = TCODColor::white * (abs(tile->temperature) / (40 / 2));
+			if (type == Type::WORLD) {
+				switch (tile->effect) {
+				case Tile::Effect::FROZEN:
+					if (tile->type != Tile::Type::OCEAN && tile->type != Tile::Type::WATER_SHALLOW) {
+						backColor = TCODColor::white * (abs(tile->temperature) / (40 / 2));
+					}
+					else if (tile->type == Tile::Type::OCEAN) {
+						backColor = TCODColor::lightBlue * (abs(tile->temperature) / (40 / 2));
+					}
+					else if (tile->type == Tile::Type::WATER_SHALLOW) {
+						backColor = TCODColor::lighterBlue * (abs(tile->temperature) / (40 / 2));
+					}
+					break;
 				}
-				else if (tile->type == Tile::Type::OCEAN) {
-					backColor = TCODColor::lightBlue * (abs(tile->temperature) / (40 / 2));
-				}
-				else if (tile->type == Tile::Type::WATER_SHALLOW) {
-					backColor = TCODColor::lighterBlue * (abs(tile->temperature) / (40 / 2));
-				}
-				break;
 			}
 			if (isInFov(x, y)) {
 				TCODConsole::root->setChar(skewX, skewY, glyph);

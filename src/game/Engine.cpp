@@ -151,6 +151,7 @@ void Engine::render() {
 
 	// highlight mouse target
 	TCODConsole::root->setCharBackground(mouse_winX, mouse_winY, TCODColor::red);
+	//TCODConsole::root->printFrame(0, 0, TCODConsole::root->getWidth(), TCODConsole::root->getHeight(), false, TCOD_BKGND_DEFAULT, map->name.c_str());
 }
 
 void Engine::translateToView(int &x, int &y) {

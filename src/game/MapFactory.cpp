@@ -43,7 +43,7 @@ void MapFactory::makeDungeonMap(Map &map) {
 }
 void MapFactory::makeTownMap(Map &map) {
 
-	placeBoundingWall(map, 5, 5, map.width - 5, map.height - 5);
+	//placeBoundingWall(map, 5, 5, map.width - 5, map.height - 5);
 	TCODHeightMap heightMap(map.width, map.height);
 	map.heightMapMin = 256.f;
 	map.heightMapMax = 512.f;
@@ -138,7 +138,7 @@ void MapFactory::makeWorldMap(Map &map) {
 	// Add some towns
 	MapFactory::addTowns(map);
 
-	
+
 
 	// Set all the map's TCODMAP properties based on Tile::Type
 	setMapTileProperties(map);
@@ -215,12 +215,13 @@ void MapFactory::addTrees(Map &map, int divisor) {
 			if (t->temperature >= MapFactory::JUNGLE_TEMPERATURE) {
 				treeType = Tile::Type::JUNGLE;
 			}
-			else {
-				treeType = Tile::Type::FOREST;
-			}
 		}
+		else {
+			treeType = Tile::Type::FOREST;
+		}
+
 		MapFactory::addFeatureSeed(map, x, y, treeType, 1, 1000);
-		
+
 	}
 }
 
