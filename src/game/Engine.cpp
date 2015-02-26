@@ -9,6 +9,8 @@ const int MAP_HEIGHT = 200;
 Engine::Engine(int screenWidth, int screenHeight) : gameStatus(STARTUP),
 player(NULL), map(NULL), fovRadius(WORLD_FOV_RADIUS),
 screenWidth(screenWidth), screenHeight(screenHeight), level(0) {
+	showTemperature = false;
+	showWeather = false;
 	dbglog("LIBTCOD-BASE\nRoguelike Engine\nJesse Pospisil 2015\n-----\n");
 	TCODConsole::setCustomFont("terminal16x16_gs_ro.png", TCOD_FONT_LAYOUT_ASCII_INROW);
 	TCODConsole::initRoot(screenWidth, screenHeight, "libtcod-base", false);
@@ -82,7 +84,7 @@ void Engine::term() {
 }
 
 void Engine::update() {
-	
+
 	if (gameStatus == STARTUP) map->computeFov();
 	gameStatus = IDLE;
 	TCODSystem::checkForEvent(TCOD_EVENT_KEY_PRESS | TCOD_EVENT_MOUSE, &lastKey, &mouse);
@@ -92,6 +94,19 @@ void Engine::update() {
 	}
 	else if (lastKey.vk == TCODK_PRINTSCREEN) {
 		TCODSystem::saveScreenshot(NULL);
+	}
+	else if (lastKey.vk == TCODK_F2) {
+		if (!showTemperature && !showWeather) {
+			showTemperature = true;
+		}
+		else if (showTemperature) {
+			showTemperature = false;
+			showWeather = true;
+		}
+		else if (showWeather) {
+			showTemperature = false;
+			showWeather = false;
+		}
 	}
 	// Set out important mouse information
 	translateMouseToView();

@@ -6,6 +6,8 @@ public:
 	static void makeDungeonMap(Map &map);
 
 	static const float DESERT_TEMPERATURE;
+	static const float ARID_WEATHER;
+	static const float HUMID_WEATHER;
 	static const float JUNGLE_TEMPERATURE;
 	static const float FREEZING_TEMPERATURE;
 

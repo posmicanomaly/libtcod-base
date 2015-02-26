@@ -1,7 +1,10 @@
 #include "main.hpp"
-const float MapFactory::DESERT_TEMPERATURE = 90.0f;
-const float MapFactory::JUNGLE_TEMPERATURE = 75.0f;
+const float MapFactory::DESERT_TEMPERATURE = 80.0f;
+const float MapFactory::JUNGLE_TEMPERATURE = 68.0f;
 const float MapFactory::FREEZING_TEMPERATURE = 0.0f;
+
+const float MapFactory::ARID_WEATHER = 50.0f;
+const float MapFactory::HUMID_WEATHER = 170.0f;
 
 void MapFactory::setMapTileProperties(Map &map) {
 	for (int x = 0; x < map.width; x++) {
@@ -130,7 +133,7 @@ void MapFactory::makeWorldMap(Map &map) {
 	// Seed some deserts
 	MapFactory::addDeserts(map, 64);
 	// Plant some trees
-	MapFactory::addTrees(map, 16);
+	MapFactory::addTrees(map, 32);
 	// Add some rivers
 	MapFactory::addRivers(map);
 	// Add some caves
@@ -150,8 +153,8 @@ void MapFactory::calcTemperatures(Map &map) {
 			Tile *t = &map.tiles[x + y * map.width];
 			float height = t->variation;
 			// Pole temperatures, Y axis
-			float defaultTemp = 110;
-			float lowestTemp = -40;
+			float defaultTemp = 120;
+			float lowestTemp = -10;
 			float difference = 0;
 
 			difference = abs(map.height / 2 - y) * 1.5f;
@@ -176,17 +179,25 @@ void MapFactory::calcTemperatures(Map &map) {
 void MapFactory::calcWeather(Map &map) {
 	TCODHeightMap weatherMap(map.width, map.height);
 	TCODNoise* noise2d = new TCODNoise(2, 1.0f, 20.0f, map.rng, TCOD_NOISE_PERLIN);
-	weatherMap.addFbm(noise2d, map.width / 16, map.height / 16, 0, 0, 8, 0.0f, 1.0f);
+	weatherMap.addFbm(noise2d, map.width / 24, map.height / 24, 0, 0, 8, 0.0f, 1.0f);
 
-	// Normalize lower than 0 to give more room for deserts and also limits the weather above oceans
-	weatherMap.normalize(-100, 100);
+	// 0cm to 400cm rainfall per year
+	weatherMap.normalize(0, 400);
 	delete noise2d;
 	for (int x = 0; x < map.width; x++) {
 		for (int y = 0; y < map.height; y++) {
 			Tile *t = &map.tiles[x + y * map.width];
 			float height = t->variation;
 			// Rainfall amount, < 0 is none, meaning dry
-			t->weather = weatherMap.getValue(x, y);
+			//if (t->variation > 200 && t->variation < 490) {
+			float adjustment = t->variation;
+			if (t->variation < 245 || t->variation > 400) 
+				adjustment = -(abs(adjustment / 8));
+			else {
+				adjustment = -(abs(adjustment / 8));
+			}
+			
+				t->weather = weatherMap.getValue(x, y) + adjustment;
 		}
 	}
 }
@@ -194,8 +205,10 @@ void MapFactory::calcWeather(Map &map) {
 void MapFactory::addDeserts(Map &map, int divisor) {
 	Tile::Type baseType = Tile::Type::PLAIN;
 	int tries;
-	int maxTries = 1000;
-	for (int i = 0; i < map.width / divisor * map.height / divisor; i++) {
+	int maxTries = map.width * map.height;
+	int failed = 0;
+	int amount = map.width / divisor * map.height / divisor;
+	for (int i = 0; i < amount; i++) {
 		tries = 0;
 		int x, y;
 		Tile *t;
@@ -210,10 +223,8 @@ void MapFactory::addDeserts(Map &map, int divisor) {
 			t = &map.tiles[x + y * map.width];
 			if (t->type == baseType) {
 				if (t->temperature >= MapFactory::DESERT_TEMPERATURE) {
-					if (t->weather <= 10)
+					if (t->weather <= MapFactory::ARID_WEATHER)
 						valid = true;
-					else
-						std::cout << "weather: " << t->weather << std::endl;
 				}
 			}
 			tries++;
@@ -221,10 +232,11 @@ void MapFactory::addDeserts(Map &map, int divisor) {
 		if (valid)
 			MapFactory::addFeatureSeed(map, x, y, Tile::Type::DESERT, 1, 1000);
 		else {
-			std::cout << "desert seed " << i << " failed" << std::endl;
+			failed++;
 		}
 
 	}
+	std::cout << "Desert seeds: " << amount << "(" << failed << " failed)" << std::endl;
 }
 
 void MapFactory::addTrees(Map &map, int divisor) {
@@ -237,8 +249,45 @@ void MapFactory::addTrees(Map &map, int divisor) {
 		baseType = Tile::Type::GRASS; treeType = Tile::Type::TREE; break;
 	default:				baseType = Tile::Type::PLAIN; break;
 	}
+	int jungles = 0;
+	int forests = 0;
+
+	// Jungles
 	for (int i = 0; i < map.width / divisor * map.height / divisor; i++) {
-		bool jungle = false;
+		int x, y;
+		Tile *t = NULL;
+		bool valid = false;
+		int tries = 0;
+		int fails = 0;
+		int maxTries = map.width * map.height;
+		do {
+			if (tries > maxTries) {
+				valid = false;
+				break;
+			}
+			x = map.rng->getInt(1, map.width - 1);
+			y = map.rng->getInt(1, map.height - 1);
+			t = &map.tiles[x + y * map.width];
+			if (t->type == baseType) {
+				if (t->temperature >= MapFactory::JUNGLE_TEMPERATURE && t->weather >= MapFactory::HUMID_WEATHER)
+					valid = true;
+			}
+			tries++;
+		} while (!valid);
+		if (valid) {
+			if (t->temperature >= MapFactory::JUNGLE_TEMPERATURE && t->weather >= MapFactory::HUMID_WEATHER) {
+				treeType = Tile::Type::JUNGLE;
+				jungles++;
+			}
+		}
+		else {
+			fails++;
+		}
+		MapFactory::addFeatureSeed(map, x, y, Tile::Type::JUNGLE, 1, 1000);
+	}
+
+	// Temperate forests
+	for (int i = 0; i < map.width / divisor * map.height / divisor; i++) {
 		int x, y;
 		do {
 			x = map.rng->getInt(1, map.width - 1);
@@ -246,17 +295,18 @@ void MapFactory::addTrees(Map &map, int divisor) {
 		} while (map.tiles[x + y * map.width].type != baseType);
 		Tile *t = &map.tiles[x + y * map.width];
 		if (map.type == Map::Type::WORLD) {
-			if (t->temperature >= MapFactory::JUNGLE_TEMPERATURE) {
-				treeType = Tile::Type::JUNGLE;
-			}
+				treeType = Tile::Type::FOREST;
+				forests++;
+			
 		}
 		else {
-			treeType = Tile::Type::FOREST;
+			treeType = Tile::Type::TREE;
 		}
 
 		MapFactory::addFeatureSeed(map, x, y, treeType, 1, 1000);
 
 	}
+	std::cout << "Forests: " << forests << " Jungles: " << jungles << std::endl;
 }
 
 void MapFactory::addTowns(Map &map) {
@@ -333,11 +383,8 @@ void MapFactory::addCaves(Map &map) {
 					case Tile::Type::LAKE:
 					case Tile::Type::JUNGLE:
 					case Tile::Type::HILL:
-						valid = true; break;
 					case Tile::Type::DESERT:
-						if (cur->weather <= 10 && cur->temperature <= DESERT_TEMPERATURE) {
-							valid = true; break;
-						}
+						valid = true; break;
 					}
 					if (valid) {
 						break;
@@ -542,14 +589,30 @@ void MapFactory::addFeatureSeed(Map &map, int x, int y, Tile::Type type, int min
 
 			// set the nextx, nexty tile to type
 			Tile *tile = &map.tiles[nextx + nexty * map.width];
+			// Check for a blocking tile
 			bool changeType = true;
 			switch (tile->type) {
 			case Tile::Type::MOUNTAIN:
 			case Tile::Type::OCEAN:
 			case Tile::Type::WATER_SHALLOW:
-			case Tile::Type::DESERT:
 			case Tile::Type::SHORE:
+			case Tile::Type::DESERT:
 			case Tile::Type::LAKE: changeType = false; break;
+			}
+			// Check if tile is suitable
+			if (changeType) {
+				switch (type) {
+				case Tile::Type::JUNGLE:
+					if (tile->type == Tile::Type::FOREST) {
+						changeType = false;
+					}
+					break;
+				case Tile::Type::FOREST:
+					if (tile->type == Tile::Type::JUNGLE) {
+						changeType = false;
+					}
+					break;
+				}
 			}
 			if (changeType) {
 				tile->type = type;

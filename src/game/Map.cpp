@@ -552,8 +552,43 @@ void Map::render() const {
 			backColor = foreColor * 0.25f;
 
 			// TEMPERATURE TEST
-
-			//backColor = TCODColor::red * (tile->temperature / 100);
+			if (engine.showTemperature) {
+				backColor = TCODColor::red * (tile->temperature / 120);
+			}
+			else if (engine.showWeather) {
+				// Weather test
+				if (tile->weather > MapFactory::HUMID_WEATHER) {
+					backColor = TCODColor::green * (tile->weather / (400));
+				}
+				else if (tile->weather > 100) {
+					backColor = TCODColor::blue * ((tile->weather + 100) / 400);
+				}
+				//else if (tile->weather > 50) {
+				//	backColor = TCODColor::yellow * ((tile->weather + 50) / 400);
+				//}
+				else {
+					backColor = TCODColor::darkRed * ((tile->weather + 400) / 400);
+				}
+				backColor = backColor * .5;
+				/////////////////////////////////////
+			}
+			else {
+				if (type == Type::WORLD || type == Type::TOWN) {
+					switch (tile->effect) {
+					case Tile::Effect::FROZEN:
+						if (tile->type != Tile::Type::OCEAN && tile->type != Tile::Type::WATER_SHALLOW) {
+							backColor = TCODColor::white * (abs(tile->temperature) / (10 / 2));
+						}
+						else if (tile->type == Tile::Type::OCEAN) {
+							backColor = TCODColor::lightBlue * (abs(tile->temperature) / (40 / 2));
+						}
+						else if (tile->type == Tile::Type::WATER_SHALLOW) {
+							backColor = TCODColor::lighterBlue * (abs(tile->temperature) / (40 / 2));
+						}
+						break;
+					}
+				}
+			}
 
 
 			//Skew X and Y based on the offset for drawing
@@ -561,23 +596,8 @@ void Map::render() const {
 			skewY = y;
 			engine.translateToView(skewX, skewY);
 
-			if (type == Type::WORLD || type == Type::TOWN) {
-				switch (tile->effect) {
-				case Tile::Effect::FROZEN:
-					if (tile->type != Tile::Type::OCEAN && tile->type != Tile::Type::WATER_SHALLOW) {
-						backColor = TCODColor::white * (abs(tile->temperature) / (40 / 2));
-					}
-					else if (tile->type == Tile::Type::OCEAN) {
-						backColor = TCODColor::lightBlue * (abs(tile->temperature) / (40 / 2));
-					}
-					else if (tile->type == Tile::Type::WATER_SHALLOW) {
-						backColor = TCODColor::lighterBlue * (abs(tile->temperature) / (40 / 2));
-					}
-					break;
-				}
-			}
-			// Weather test
-			backColor = TCODColor::darkGreen * (tile->weather / 100);
+			
+			
 			if (isInFov(x, y)) {
 				TCODConsole::root->setChar(skewX, skewY, glyph);
 				TCODConsole::root->setCharBackground(skewX, skewY,

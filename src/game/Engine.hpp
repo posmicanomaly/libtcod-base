@@ -33,6 +33,8 @@ public :
 	void translateMouseToView();
 	void update();
     void render();
+	bool showTemperature;
+	bool showWeather;
     
 	void sendToBack(Actor *actor);
     
