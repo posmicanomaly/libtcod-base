@@ -1,7 +1,7 @@
 #include <iostream>
 #include <string>
 #include <vector>
-void dbglog(std::string s);
+void dbglog (std::string s);
 #include "..\libtcod\libtcod.hpp"
 class Actor;
 #include "Persistent.hpp"
@@ -10,6 +10,7 @@ class Actor;
 #include "Ai.hpp"
 #include "Pickable.hpp"
 #include "Container.hpp"
+#include "GameView.h"
 #include "Actor.hpp"
 class MapFactory;
 #include "Map.hpp"

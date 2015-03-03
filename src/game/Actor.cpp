@@ -1,22 +1,21 @@
 #include <math.h>
 #include "main.hpp"
 
-Actor::Actor(int x, int y, int ch, const char *name,
-	const TCODColor &col) :
-	x(x), y(y), ch(ch), col(col),
-	blocks(true), fovOnly(true), attacker(NULL), destructible(NULL), ai(NULL),
-	pickable(NULL), container(NULL) {
-	this->name = _strdup(name);
+Actor::Actor (int x, int y, int ch, const char *name,
+			  const TCODColor &col) :
+			  x (x), y (y), ch (ch), col (col),
+			  blocks (true), fovOnly (true), attacker (NULL), destructible (NULL), ai (NULL),
+			  pickable (NULL), container (NULL) {
+	this->name = _strdup (name);
 }
 
-Actor::~Actor() {
+Actor::~Actor () {
 	if (this == engine.player) {
 		std::cout << "Deleting player" << std::endl;
 	}
 	if (name != NULL) {
 		//std::cout << name << " ~Actor()" << std::endl;
-	}
-	else {
+	} else {
 		//std::cout << " NULL ~Actor()" << std::endl;
 	}
 	if (attacker) delete attacker;
@@ -27,7 +26,7 @@ Actor::~Actor() {
 		// a leak.
 		// Doing this here instead of destructor so I can compare names
 		if (destructible->corpseName != this->name) {
-			free((char *)destructible->corpseName);
+			free ((char *)destructible->corpseName);
 		}
 		delete destructible;
 	}
@@ -36,26 +35,26 @@ Actor::~Actor() {
 	if (container) delete container;
 	// This should always be a valid free, for instance if destructible calls die, in the
 	// die function the old name is now freed.
-	free((char *)name);
+	free ((char *)name);
 }
 
-void Actor::render() const {
+void Actor::render (TCODConsole *target) const {
 	/*
 	Skew X and Y based on the offset for drawing
 	*/
 	int skewX = x;
 	int skewY = y;
-	engine.translateToView(skewX, skewY);
-	TCODConsole::root->setChar(skewX, skewY, ch);
-	TCODConsole::root->setCharForeground(skewX, skewY, col);
+	engine.translateToView (skewX, skewY);
+	target->setChar (skewX, skewY, ch);
+	target->setCharForeground (skewX, skewY, col);
 }
 
-void Actor::update() {
-	if (ai) ai->update(this);
+void Actor::update () {
+	if (ai) ai->update (this);
 }
 
-float Actor::getDistance(int cx, int cy) const {
+float Actor::getDistance (int cx, int cy) const {
 	int dx = x - cx;
 	int dy = y - cy;
-	return sqrtf(dx*dx + dy*dy);
+	return sqrtf (dx*dx + dy*dy);
 }
