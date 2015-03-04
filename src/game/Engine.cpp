@@ -20,13 +20,17 @@ screenWidth (screenWidth), screenHeight (screenHeight), level (0) {
 
 void Engine::init () {
 	dbglog ("Engine::init()\n");
-	// Reset level here?
+	// Reset level here
 	level = 0;
+	// Set map fov radius
 	fovRadius = WORLD_FOV_RADIUS;
+	// Create map
 	map = new Map (MAP_WIDTH, MAP_HEIGHT, Map::Type::WORLD);
 	map->init (true);
 
+	// Determine player start
 	int playerStartX, playerStartY;
+	// In world
 	if (map->type == Map::Type::WORLD) {
 		Tile *startTile;
 		bool valid;
@@ -48,10 +52,13 @@ void Engine::init () {
 				}
 			}
 		} while (!valid);
-	} else {
+	}
+	// Not in world
+	else {
 		playerStartX = map->stairsUp->x;
 		playerStartY = map->stairsUp->y;
 	}
+
 	// Player setup
 	player = new Actor (playerStartX, playerStartY, '@', "player", TCODColor::magenta);
 	player->destructible = new PlayerDestructible (30, 2, "your cadaver");
@@ -72,6 +79,7 @@ Engine::~Engine () {
 	std::cout << "Engine::~Engine()" << std::endl;
 	term ();
 	delete gui;
+	delete gameView;
 }
 
 void Engine::term () {
@@ -104,7 +112,7 @@ void Engine::update () {
 			showWeather = false;
 		}
 	}
-	// Set out important mouse information
+	// Set our important mouse information
 	translateMouseToView ();
 	if (mouse.lbutton_pressed) {
 		std::cout << "click: " << mouse.cx << ", " << mouse.cy << std::endl;
@@ -123,7 +131,7 @@ void Engine::update () {
 	}
 }
 void Engine::translateMouseToView () {
-	// Set out important mouse information
+	// Set our important mouse information
 	mouse_mapX = mouse.cx + xOffset;
 	mouse_mapY = mouse.cy + yOffset;
 	mouse_winX = mouse.cx;
@@ -141,6 +149,8 @@ void Engine::render () {
 	// Can't call this in update because it makes the player jumpy
 	xOffset = engine.player->x - VIEW_WIDTH / 2;
 	yOffset = engine.player->y - VIEW_HEIGHT / 2;
+	xOffset-=14;
+	yOffset-=0;
 
 	// Drawing the GameView
 	gameView->render ();

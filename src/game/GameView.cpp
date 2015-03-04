@@ -28,6 +28,15 @@ void GameView::render () {
 		}
 	}
 	player->render (con);
+	// dungeon level
+	con->setDefaultForeground (TCODColor::grey);
+	const char *title = "Game View";
+	if (engine.level == 0) {
+		title = "World";
+	} else {
+		title = engine.map->name.c_str();
+	}
+	con->printFrame (14, 0, engine.screenWidth - 14, engine.screenHeight- 16, false, TCOD_BKGND_DARKEN, title);
 	// blit the GameView console on the root console
 	TCODConsole::blit (con, 0, 0, engine.screenWidth, engine.screenHeight,
 					   TCODConsole::root, 0, 0);

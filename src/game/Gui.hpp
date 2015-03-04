@@ -38,6 +38,7 @@ public:
 	void clear ();
 protected:
 	TCODConsole *con;
+	TCODConsole *left;
 	struct Message {
 		char *text;
 		TCODColor col;
@@ -45,9 +46,8 @@ protected:
 		~Message ();
 	};
 	TCODList<Message *> log;
-
-	void renderBar (int x, int y, int width, const char *name,
+	void renderBar (TCODConsole *target, int x, int y, int width, const char *name,
 					float value, float maxValue, const TCODColor &barColor,
 					const TCODColor &backColor);
-	void renderMouseLook ();
+	void renderMouseLook (int x, int y);
 };
