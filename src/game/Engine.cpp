@@ -9,6 +9,8 @@ const int MAP_HEIGHT = 200;
 Engine::Engine (int screenWidth, int screenHeight) : gameStatus (STARTUP),
 player (NULL), map (NULL), fovRadius (WORLD_FOV_RADIUS),
 screenWidth (screenWidth), screenHeight (screenHeight), level (0) {
+	VIEW_HEIGHT = screenHeight - 16;
+	VIEW_WIDTH = screenWidth - 14;
 	showTemperature = false;
 	showWeather = false;
 	dbglog ("LIBTCOD-BASE\nRoguelike Engine\nJesse Pospisil 2015\n-----\n");
@@ -111,6 +113,12 @@ void Engine::update () {
 			showTemperature = false;
 			showWeather = false;
 		}
+	} else if (lastKey.vk == TCODK_ENTER && lastKey.ralt == true) {
+		if (TCODConsole::root->isFullscreen ()) {
+			TCODConsole::root->setFullscreen (false);
+		} else {
+			TCODConsole::root->setFullscreen (true);
+		}
 	}
 	// Set our important mouse information
 	translateMouseToView ();
@@ -149,32 +157,18 @@ void Engine::render () {
 	// Can't call this in update because it makes the player jumpy
 	xOffset = engine.player->x - VIEW_WIDTH / 2;
 	yOffset = engine.player->y - VIEW_HEIGHT / 2;
-	xOffset-=14;
+	// offset for the gui (14 width - 1 because zeroes = 13)
+	// TODO this needs to be refactored
+	xOffset-=13;
 	yOffset-=0;
 
 	// Drawing the GameView
 	gameView->render ();
-	// draw the map
-	//map->render ();
-
-	//// draw the actors
-	//for (Actor **iterator = map->actors.begin ();
-	//	 iterator != map->actors.end (); iterator++) {
-	//	Actor *actor = *iterator;
-	//	if (actor != player
-	//		&& ((!actor->fovOnly && map->isExplored (actor->x, actor->y))
-	//		|| map->isInFov (actor->x, actor->y))) {
-	//		actor->render ();
-	//	}
-	//}
-	//player->render ();
-	//////////////////////////////////////////////////////////////
-	// show the player's stats
+	// Drawing the gui
 	gui->render ();
 
 	// highlight mouse target
 	TCODConsole::root->setCharBackground (mouse_winX, mouse_winY, TCODColor::red);
-	//TCODConsole::root->printFrame(0, 0, TCODConsole::root->getWidth(), TCODConsole::root->getHeight(), false, TCOD_BKGND_DEFAULT, map->name.c_str());
 }
 
 void Engine::translateToView (int &x, int &y) {

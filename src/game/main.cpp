@@ -1,7 +1,9 @@
 #include "vld.h"
 #include "main.hpp"
-const int SCREEN_WIDTH = 80 + 14;
-const int SCREEN_HEIGHT = 50 + 9;
+int testAdjustWidth = 10;
+int testAdjustHeight = 6;
+const int SCREEN_WIDTH = 80 + 14 + testAdjustWidth;
+const int SCREEN_HEIGHT = 50 + 9 + testAdjustHeight;
 
 
 void dbglog (std::string s) {

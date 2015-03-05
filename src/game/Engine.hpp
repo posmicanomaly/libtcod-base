@@ -16,8 +16,8 @@ public:
 	int fovRadius;
 	int screenWidth;
 	int screenHeight;
-	const int VIEW_WIDTH = 80;
-	const int VIEW_HEIGHT = 43;
+	int VIEW_WIDTH;
+	int VIEW_HEIGHT;
 	int mouse_winX;
 	int mouse_winY;
 	int mouse_mapX;
