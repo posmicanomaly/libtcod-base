@@ -30,11 +30,15 @@ void GameView::render () {
 	player->render (con);
 	// dungeon level
 	con->setDefaultForeground (TCODColor::grey);
-	const char *title = "Game View";
+	char title[32];
 	if (engine.level == 0) {
-		title = "World";
+		strcpy_s (title, "World");
 	} else {
-		title = engine.map->name.c_str();
+		char integer_level[8];
+		strcpy_s (title, engine.map->name.c_str ());
+		strcat_s (title, " level: ");
+		sprintf_s (integer_level, "%d", engine.level);
+		strcat_s (title, integer_level);
 	}
 	con->printFrame (14, 0, engine.screenWidth - 14, engine.screenHeight- 16, false, TCOD_BKGND_DARKEN, title);
 	// blit the GameView console on the root console
