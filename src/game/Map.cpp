@@ -395,6 +395,14 @@ void Map::render (TCODConsole *target) const {
 	static const TCODColor TREE (TCODColor::darkestGreen);
 	static const TCODColor WATER_DEEP (TCODColor::blue);
 
+	// Constant glyphs
+	static const int ALMOST_EQUAL_TO = 247;
+	static const int JUNLE_J = 20;// 244;
+	static const int INTERSECTION = 239;
+	static const int UP_TRIANGLE = 30;
+	static const int SPADE = 6;
+	static const int CLOVER = 5;
+
 	// Get the drawing offsets
 	int xOffset = engine.xOffset;
 	int yOffset = engine.yOffset;
@@ -406,8 +414,11 @@ void Map::render (TCODConsole *target) const {
 	// For x within view width and y within view height
 	// DEBUG: engine.VIEW_WIDTH instead of VIEW_WIDTH / 2 and same for height to draw when map scrolls to edge
 	//			until I can fix.
-	for (int x = engine.player->x - engine.VIEW_WIDTH; x <= engine.player->x + engine.VIEW_WIDTH; x++) {
-		for (int y = engine.player->y - engine.VIEW_HEIGHT; y <= engine.player->y + engine.VIEW_HEIGHT; y++) {
+	Actor *p = engine.player;
+	for (int x = p->x - engine.VIEW_WIDTH / 2; x <= p->x + engine.VIEW_WIDTH / 2; x++) {
+		for (int y = p->y - engine.VIEW_HEIGHT / 2; y <= p->y + engine.VIEW_HEIGHT / 2; y++) {
+
+
 
 			// Out of range
 			if (x < 0 || y < 0 || x >= width || y >= height) {
@@ -421,15 +432,6 @@ void Map::render (TCODConsole *target) const {
 
 			// Current tile pointer
 			Tile *tile = &tiles[x + y * width];
-
-			// Constant glyphs
-			static const int ALMOST_EQUAL_TO = 247;
-			static const int JUNLE_J = 20;// 244;
-			static const int INTERSECTION = 239;
-			static const int UP_TRIANGLE = 30;
-			static const int SPADE = 6;
-			static const int CLOVER = 5;
-
 			// Set colors if the type is WORLD
 			if (engine.map->type == Map::Type::WORLD) {
 				switch (tile->type) {

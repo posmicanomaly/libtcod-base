@@ -15,6 +15,8 @@ void GameView::render () {
 	// draw the map
 	Map *map = engine.map;
 	Actor *player = engine.player;
+	/*static TCODImage img ("menu_background1.png");
+	img.blit2x (con, 15, 0);*/
 	map->render (con);
 
 	// draw the actors
