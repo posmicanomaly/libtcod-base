@@ -161,6 +161,16 @@ void Engine::render () {
 	// TODO this needs to be refactored
 	xOffset-=13;
 	yOffset-=0;
+	if (xOffset < -15) {
+		xOffset = -15;
+	} else if (xOffset > VIEW_WIDTH + 7) {
+		xOffset = VIEW_WIDTH + 7;
+	}
+	if (yOffset < -1) {
+		yOffset = -1;
+	} else if (yOffset > VIEW_HEIGHT + 103) {
+		yOffset = VIEW_HEIGHT + 103;
+	}
 
 	// Drawing the GameView
 	gameView->render ();
@@ -334,8 +344,13 @@ void Engine::changeLevel (signed int direction, Actor *actor) {
 	}
 
 	// Create a new map
-
-	map = new Map (MAP_WIDTH, MAP_HEIGHT, nextMapType);
+	if (nextMapName == "world") {
+		map = new Map (MAP_WIDTH, MAP_HEIGHT, nextMapType);
+	}
+	// Not world map? make it only the size of the VIEW for now. TODO variable map sizes.
+	else {
+		map = new Map (VIEW_WIDTH, VIEW_HEIGHT, nextMapType);
+	}
 
 	// If the map doesn't exist at the next level, create a new one
 	if (!mapExists (level, nextMapName)) {

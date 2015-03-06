@@ -3,7 +3,7 @@
 #include "main.hpp"
 
 static const int PANEL_HEIGHT = 16;
-static const int BAR_WIDTH = 12;
+static const int BAR_WIDTH = 10;
 static const int MSG_X = 1;
 static const int MSG_HEIGHT = PANEL_HEIGHT - 1;
 
@@ -25,21 +25,44 @@ void Gui::clear () {
 void Gui::render () {
 	// Left bar
 	left->setDefaultBackground (TCODColor::black);
+	left->setDefaultForeground (TCODColor::white);
 	left->clear ();
-	
+	int x = 1;
+	int y = 2;
+	// Name
+	left->printEx (x, y, TCOD_BKGND_NONE, TCOD_LEFT, "%s", engine.player->name);
+	y++;
+	// Level
+	PlayerAi *ai = (PlayerAi *)engine.player->ai;
+	char levelText[128];
+	sprintf_s (levelText, "Level %d", ai->xpLevel);
+	left->printEx (x, y, TCOD_BKGND_NONE, TCOD_LEFT, "%s", levelText);
+	y += 2;
 	// draw the health bar
-	renderBar (left, 1, 2, BAR_WIDTH, "HP", engine.player->destructible->hp,
+	left->printEx (x, y, TCOD_BKGND_NONE, TCOD_LEFT, "%s", "HP");
+	renderBar (left, x + strlen("HP"), y, BAR_WIDTH, "HP", engine.player->destructible->hp,
 			   engine.player->destructible->maxHp,
 			   TCODColor::lightRed, TCODColor::darkerRed);
-
+	y++;
 	// draw the XP bar
-	PlayerAi *ai = (PlayerAi *)engine.player->ai;
 	char xpTxt[128];
-	sprintf_s (xpTxt, "XP(%d)", ai->xpLevel);
-	renderBar (left, 1, 3, BAR_WIDTH, xpTxt, engine.player->destructible->xp,
+	sprintf_s (xpTxt, "XP");
+	left->printEx (x, y, TCOD_BKGND_NONE, TCOD_LEFT, "%s", xpTxt);
+	renderBar (left, x + strlen(xpTxt), y, BAR_WIDTH, xpTxt, engine.player->destructible->xp,
 			   ai->getNextLevelXp (),
 			   TCODColor::lightViolet, TCODColor::darkerViolet);
+	y += 2;
 
+	// Stats
+	char powerTxt[128];
+	sprintf_s (powerTxt, "PWR: %d", engine.player->attacker->power);
+	char defTxt[128];
+	sprintf_s (defTxt, "DEF: %d", engine.player->destructible->defense);
+
+	left->printEx (x, y, TCOD_BKGND_NONE, TCOD_LEFT, "%s", powerTxt);
+	y++;
+	left->printEx (x, y, TCOD_BKGND_NONE, TCOD_LEFT, "%s", defTxt);
+	y++;
 	// mouse look
 	renderMouseLook (1, engine.screenHeight - PANEL_HEIGHT - 2);
 
@@ -55,7 +78,7 @@ void Gui::render () {
 	con->clear ();
 
 	// draw the message log
-	int y = 1;
+	y = 1;
 	float colorCoef = 0.4f;
 	for (Message **it = log.begin (); it != log.end (); it++) {
 		Message *message = *it;
@@ -92,8 +115,8 @@ void Gui::renderBar (TCODConsole *target, int x, int y, int width, const char *n
 	}
 	// print text on top of the bar
 	target->setDefaultForeground (TCODColor::white);
-	target->printEx (x + width / 2, y, TCOD_BKGND_NONE, TCOD_CENTER,
-				  "%s : %g/%g", name, value, maxValue);
+	target->printEx (x + width - 1, y, TCOD_BKGND_NONE, TCOD_RIGHT,
+				  "%g/%g", value, maxValue);
 }
 
 Gui::Message::Message (const char *text, const TCODColor &col) :

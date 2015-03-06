@@ -404,8 +404,10 @@ void Map::render (TCODConsole *target) const {
 	int skewY;
 
 	// For x within view width and y within view height
-	for (int x = engine.player->x - engine.VIEW_WIDTH / 2; x <= engine.player->x + engine.VIEW_WIDTH / 2; x++) {
-		for (int y = engine.player->y - engine.VIEW_HEIGHT / 2; y <= engine.player->y + engine.VIEW_HEIGHT / 2; y++) {
+	// DEBUG: engine.VIEW_WIDTH instead of VIEW_WIDTH / 2 and same for height to draw when map scrolls to edge
+	//			until I can fix.
+	for (int x = engine.player->x - engine.VIEW_WIDTH; x <= engine.player->x + engine.VIEW_WIDTH; x++) {
+		for (int y = engine.player->y - engine.VIEW_HEIGHT; y <= engine.player->y + engine.VIEW_HEIGHT; y++) {
 
 			// Out of range
 			if (x < 0 || y < 0 || x >= width || y >= height) {
