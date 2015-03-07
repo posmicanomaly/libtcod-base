@@ -58,7 +58,7 @@ Gui::Message::~Message () {
 void Gui::renderLeftPanel () {
 	// Clear console and set colors
 	left->setDefaultBackground (TCODColor::black);
-	left->setDefaultForeground (TCODColor::white);
+	left->setDefaultForeground (TCODColor::lightGrey);
 	left->clear ();
 
 	// Draw position fields
@@ -83,6 +83,7 @@ void Gui::renderLeftPanel () {
 			   TCODColor::lightRed, TCODColor::darkerRed);
 	y++;
 
+	left->setDefaultForeground (TCODColor::lightGrey);
 	// draw the XP bar
 	char xpTxt[128];
 	sprintf_s (xpTxt, "XP");
@@ -91,7 +92,7 @@ void Gui::renderLeftPanel () {
 			   ai->getNextLevelXp (),
 			   TCODColor::lightViolet, TCODColor::darkerViolet);
 	y += 2;
-
+	left->setDefaultForeground (TCODColor::lightGrey);
 	// Stats
 	// Power
 	char powerTxt[128];
@@ -109,7 +110,8 @@ void Gui::renderLeftPanel () {
 	renderMouseLook (1, engine.screenHeight - MESSAGE_PANEL_HEIGHT - 2);
 
 	// Draw a frame
-	left->setDefaultForeground (TCODColor::grey);
+	left->setDefaultForeground (TCODColor::lightGrey);
+	left->setDefaultBackground (TCODColor::black);
 	left->printFrame (0, 0, LEFT_PANEL_WIDTH, engine.screenHeight - MESSAGE_PANEL_HEIGHT, false, TCOD_BKGND_DARKEN, "Char");
 
 	// Blit the leftPanel
@@ -173,6 +175,7 @@ void Gui::renderRightPanel () {
 	// Set field to how many times y was incremented to represent how many lines we wrote
 	well_coord_lines = y;
 	right->setDefaultForeground (TCODColor::lightGrey);
+	
 	right->printFrame (1, 1, RIGHT_PANEL_WIDTH - 2, well_coord_lines, false, TCOD_BKGND_DARKEN);
 	
 	// Spacer
