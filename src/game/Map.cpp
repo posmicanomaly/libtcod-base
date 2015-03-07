@@ -35,6 +35,31 @@ public:
 	}
 };
 
+char *Tile::typeToChar () {
+	switch (type) {
+		case Type::DESERT: return "desert"; break;
+		case Type::FLOOR: return "floor"; break;
+		case Type::FOREST: return "forest"; break;
+		case Type::GLACIER: return "glacier"; break;
+		case Type::GRASS: return "grass"; break;
+		case Type::HILL: return "hill"; break;
+		case Type::JUNGLE: return "jungle"; break;
+		case Type::LAKE: return "lake"; break;
+		case Type::MOUNTAIN: return "mountain"; break;
+		case Type::OCEAN: return "oceean"; break;
+		case Type::PLAIN: return "plain"; break;
+		case Type::RIVER: return "river"; break;
+		case Type::SHORE: return "shore"; break;
+		case Type::SWAMP: return "swamp"; break;
+		case Type::TREE: return "tree"; break;
+		case Type::TUNDRA: return "tundra"; break;
+		case Type::WALL: return "wall"; break;
+		case Type::WATER_DEEP: return "deep water"; break;
+		case Type::WATER_SHALLOW: return "shallow water"; break;
+		default: return "no typeToChar"; break;
+	}
+}
+
 Map::Map (int width, int height, Type type)
 : width (width), height (height), type (type), name ("default map") {
 	std::cout << "Map()" << std::endl;

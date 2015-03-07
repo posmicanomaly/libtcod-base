@@ -38,6 +38,7 @@ public:
 	void clear ();
 	static const int LEFT_PANEL_WIDTH = 14;
 	static const int RIGHT_PANEL_WIDTH = 14;
+	static const int MESSAGE_PANEL_HEIGHT = 14;
 protected:
 	TCODConsole *con;
 	TCODConsole *left;

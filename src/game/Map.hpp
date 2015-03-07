@@ -1,4 +1,5 @@
-struct Tile {
+class Tile {
+public:
 	bool explored; // has the player already seen this tile ?
 	int variation;
 	float temperature;
@@ -14,6 +15,7 @@ struct Tile {
 		NONE, SCORCHED, BLOODY, FROZEN
 	} effect;
 	Tile () : explored (false), type (WALL), effect (NONE), style (0), temperature (0.0f) {}
+	char *typeToChar ();
 };
 
 class Map : public Persistent {

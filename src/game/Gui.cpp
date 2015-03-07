@@ -2,13 +2,12 @@
 #include <stdarg.h>
 #include "main.hpp"
 
-static const int PANEL_HEIGHT = 16;
 static const int BAR_WIDTH = 10;
 static const int MSG_X = 1;
-static const int MSG_HEIGHT = PANEL_HEIGHT - 1;
+static const int MSG_HEIGHT = Gui::MESSAGE_PANEL_HEIGHT - 1;
 
 Gui::Gui () {
-	con = new TCODConsole (engine.screenWidth, PANEL_HEIGHT);
+	con = new TCODConsole (engine.screenWidth, MESSAGE_PANEL_HEIGHT);
 	left = new TCODConsole (engine.screenWidth, engine.screenHeight);
 	right = new TCODConsole (engine.screenWidth, engine.screenHeight);
 }
@@ -107,37 +106,80 @@ void Gui::renderLeftPanel () {
 	y++;
 
 	// Mouse look target
-	renderMouseLook (1, engine.screenHeight - PANEL_HEIGHT - 2);
+	renderMouseLook (1, engine.screenHeight - MESSAGE_PANEL_HEIGHT - 2);
 
 	// Draw a frame
 	left->setDefaultForeground (TCODColor::grey);
-	left->printFrame (0, 0, LEFT_PANEL_WIDTH, engine.screenHeight - PANEL_HEIGHT, false, TCOD_BKGND_DARKEN, "Char");
+	left->printFrame (0, 0, LEFT_PANEL_WIDTH, engine.screenHeight - MESSAGE_PANEL_HEIGHT, false, TCOD_BKGND_DARKEN, "Char");
 
 	// Blit the leftPanel
-	TCODConsole::root->blit (left, 0, 0, LEFT_PANEL_WIDTH, engine.screenHeight - PANEL_HEIGHT, TCODConsole::root, 0, 0);
+	TCODConsole::root->blit (left, 0, 0, LEFT_PANEL_WIDTH, engine.screenHeight - MESSAGE_PANEL_HEIGHT, TCODConsole::root, 0, 0);
 }
 
 void Gui::renderRightPanel () {
 	// Clear console and set colors
 	right->setDefaultBackground (TCODColor::black);
-	right->setDefaultForeground (TCODColor::white);
+	right->setDefaultForeground (TCODColor::grey);
 	right->clear ();
 
 	// Draw position fields
-	int x = 1;
+	int x = 2;
 	int y = 2;
 
 	int playerX = engine.player->x;
 	int playerY = engine.player->y;
 	Tile *t = engine.map->getTile (playerX, playerY);
+	char coordText[32];
+	sprintf_s (coordText, "X:%d Y:%d", playerX, playerY);
+	char ms_winText[32];
+	sprintf_s (ms_winText, "X:%d Y:%d", engine.mouse_winX, engine.mouse_winY);
+	char ms_mapText[32];
+	sprintf_s (ms_mapText, "X:%d Y:%d", engine.mouse_mapX, engine.mouse_mapY);
 	char typeText[32];
-	sprintf_s (typeText, "%d", t->type);
+	sprintf_s (typeText, "%s", t->typeToChar());
 	char tempText[32];
 	sprintf_s (tempText, "%f", t->temperature);
 	char rainText[32];
 	sprintf_s (rainText, "%f", t->weather);
 	char elvText[32];
 	sprintf_s (elvText, "%f", t->variation);
+
+	// Init field to hold how many lines this "well" has
+	int well_coord_lines = 0;
+	
+	right->setDefaultForeground (TCODColor::lightGrey);
+	right->printEx (x, y, TCOD_BKGND_DEFAULT, TCOD_LEFT, "%s", "Player");
+	y++;
+
+	right->setDefaultForeground (TCODColor::grey);
+	right->printEx (x, y, TCOD_BKGND_DEFAULT, TCOD_LEFT, "%s", coordText);
+	y++; y++;
+
+	right->setDefaultForeground (TCODColor::lightGrey);
+	right->printEx (x, y, TCOD_BKGND_DEFAULT, TCOD_LEFT, "%s", "MS_WIN");
+	y++;
+
+	right->setDefaultForeground (TCODColor::grey);
+	right->printEx (x, y, TCOD_BKGND_DEFAULT, TCOD_LEFT, "%s", ms_winText);
+	y++; y++;
+
+	right->setDefaultForeground (TCODColor::lightGrey);
+	right->printEx (x, y, TCOD_BKGND_DEFAULT, TCOD_LEFT, "%s", "MS_MAP");
+	y++;
+
+	right->setDefaultForeground (TCODColor::grey);
+	right->printEx (x, y, TCOD_BKGND_DEFAULT, TCOD_LEFT, "%s", ms_mapText);
+	y++;
+	// Set field to how many times y was incremented to represent how many lines we wrote
+	well_coord_lines = y;
+	right->setDefaultForeground (TCODColor::lightGrey);
+	right->printFrame (1, 1, RIGHT_PANEL_WIDTH - 2, well_coord_lines, false, TCOD_BKGND_DARKEN);
+	
+	// Spacer
+	y += 2;
+
+	// Init field for "tile" lines
+	int well_tile_lines = 0;
 
 	right->printEx (x, y, TCOD_BKGND_DEFAULT, TCOD_LEFT, "%s", typeText);
 	y++;
@@ -147,13 +189,39 @@ void Gui::renderRightPanel () {
 	y++;
 	right->printEx (x, y, TCOD_BKGND_DEFAULT, TCOD_LEFT, "ELV: %s", elvText);
 	y++;
+	// Set field to how many lines this was, minus the previous well.
+	well_tile_lines = y - well_coord_lines;
+
+	right->printFrame (1, well_coord_lines + 1, RIGHT_PANEL_WIDTH - 2, well_tile_lines, false, TCOD_BKGND_DARKEN);
+
+	y += 2;
+
+
+	char offsetText[32];
+	sprintf_s (offsetText, "X:%d Y:%d", engine.xOffset, engine.yOffset);
+	// Init field for "engine" lines
+	int well_engine_lines = 0;
+
+	right->printEx (x, y, TCOD_BKGND_DEFAULT, TCOD_LEFT, "%s", "OFFSET");
+	y++;
+	right->printEx (x, y, TCOD_BKGND_DEFAULT, TCOD_LEFT, "%s", offsetText);
+	y++;
+	// Set field to how many lines this was, minus the previous well.
+	well_engine_lines = y - well_coord_lines - well_tile_lines;
+
+	right->printFrame (1, well_coord_lines + well_tile_lines + 1, RIGHT_PANEL_WIDTH - 2, well_engine_lines, false, TCOD_BKGND_DARKEN);
 
 	// Draw a frame
-	right->setDefaultForeground (TCODColor::grey);
-	right->printFrame (0, 0, RIGHT_PANEL_WIDTH, engine.screenHeight - PANEL_HEIGHT, false, TCOD_BKGND_DARKEN, "Info");
+	right->setDefaultForeground (TCODColor::lightGrey);
+	right->printFrame (0, 0, RIGHT_PANEL_WIDTH, engine.screenHeight - MESSAGE_PANEL_HEIGHT, false, TCOD_BKGND_DARKEN, "Info");
 
 	// Blit the rightPanel
-	TCODConsole::root->blit (right, 0, 0, RIGHT_PANEL_WIDTH, engine.screenHeight - PANEL_HEIGHT, TCODConsole::root, engine.screenWidth - RIGHT_PANEL_WIDTH, 0);
+	TCODConsole::root->blit (right, 0, 0, 
+							 RIGHT_PANEL_WIDTH, 
+							 engine.screenHeight - MESSAGE_PANEL_HEIGHT, 
+							 TCODConsole::root, 
+							 engine.screenWidth - RIGHT_PANEL_WIDTH, 
+							 0);
 }
 
 void Gui::renderMessagePanel () {
@@ -175,10 +243,17 @@ void Gui::renderMessagePanel () {
 	}
 
 	con->setDefaultForeground (TCODColor::grey);
-	con->printFrame (0, 0, engine.screenWidth, PANEL_HEIGHT, false, TCOD_BKGND_DARKEN, "Message Log");
+	con->printFrame (0, 0, 
+					 engine.screenWidth, 
+					 MESSAGE_PANEL_HEIGHT, 
+					 false, TCOD_BKGND_DARKEN, "Message Log");
 	// blit the GUI console on the root console
-	TCODConsole::blit (con, 0, 0, engine.screenWidth, PANEL_HEIGHT,
-					   TCODConsole::root, 0, engine.screenHeight - PANEL_HEIGHT);
+	TCODConsole::blit (con, 0, 0,
+					   engine.screenWidth, 
+					   MESSAGE_PANEL_HEIGHT,
+					   TCODConsole::root, 
+					   0, 
+					   engine.screenHeight - MESSAGE_PANEL_HEIGHT);
 }
 void Gui::renderMouseLook (int x, int y) {
 

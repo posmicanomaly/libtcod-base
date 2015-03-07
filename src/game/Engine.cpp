@@ -9,7 +9,7 @@ const int MAP_HEIGHT = 200;
 Engine::Engine (int screenWidth, int screenHeight) : gameStatus (STARTUP),
 player (NULL), map (NULL), fovRadius (WORLD_FOV_RADIUS),
 screenWidth (screenWidth), screenHeight (screenHeight), level (0) {
-	VIEW_HEIGHT = screenHeight - 16;
+	VIEW_HEIGHT = screenHeight - Gui::MESSAGE_PANEL_HEIGHT;
 	VIEW_WIDTH = screenWidth - Gui::LEFT_PANEL_WIDTH - Gui::RIGHT_PANEL_WIDTH;
 	showTemperature = false;
 	showWeather = false;
