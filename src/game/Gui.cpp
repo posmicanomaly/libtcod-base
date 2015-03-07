@@ -10,11 +10,13 @@ static const int MSG_HEIGHT = PANEL_HEIGHT - 1;
 Gui::Gui () {
 	con = new TCODConsole (engine.screenWidth, PANEL_HEIGHT);
 	left = new TCODConsole (engine.screenWidth, engine.screenHeight);
+	right = new TCODConsole (engine.screenWidth, engine.screenHeight);
 }
 
 Gui::~Gui () {
 	delete con;
 	delete left;
+	delete right;
 	clear ();
 }
 
@@ -23,81 +25,9 @@ void Gui::clear () {
 }
 
 void Gui::render () {
-	// Left bar
-	left->setDefaultBackground (TCODColor::black);
-	left->setDefaultForeground (TCODColor::white);
-	left->clear ();
-	int x = 1;
-	int y = 2;
-	// Name
-	left->printEx (x, y, TCOD_BKGND_NONE, TCOD_LEFT, "%s", engine.player->name);
-	y++;
-	// Level
-	PlayerAi *ai = (PlayerAi *)engine.player->ai;
-	char levelText[128];
-	sprintf_s (levelText, "Level %d", ai->xpLevel);
-	left->printEx (x, y, TCOD_BKGND_NONE, TCOD_LEFT, "%s", levelText);
-	y += 2;
-	// draw the health bar
-	left->printEx (x, y, TCOD_BKGND_NONE, TCOD_LEFT, "%s", "HP");
-	renderBar (left, x + strlen("HP"), y, BAR_WIDTH, "HP", engine.player->destructible->hp,
-			   engine.player->destructible->maxHp,
-			   TCODColor::lightRed, TCODColor::darkerRed);
-	y++;
-	// draw the XP bar
-	char xpTxt[128];
-	sprintf_s (xpTxt, "XP");
-	left->printEx (x, y, TCOD_BKGND_NONE, TCOD_LEFT, "%s", xpTxt);
-	renderBar (left, x + strlen(xpTxt), y, BAR_WIDTH, xpTxt, engine.player->destructible->xp,
-			   ai->getNextLevelXp (),
-			   TCODColor::lightViolet, TCODColor::darkerViolet);
-	y += 2;
-
-	// Stats
-	char powerTxt[128];
-	sprintf_s (powerTxt, "PWR: %d", engine.player->attacker->power);
-	char defTxt[128];
-	sprintf_s (defTxt, "DEF: %d", engine.player->destructible->defense);
-
-	left->printEx (x, y, TCOD_BKGND_NONE, TCOD_LEFT, "%s", powerTxt);
-	y++;
-	left->printEx (x, y, TCOD_BKGND_NONE, TCOD_LEFT, "%s", defTxt);
-	y++;
-	// mouse look
-	renderMouseLook (1, engine.screenHeight - PANEL_HEIGHT - 2);
-
-	
-
-	left->setDefaultForeground (TCODColor::grey);
-	left->printFrame (0, 0, 14, engine.screenHeight - PANEL_HEIGHT, false, TCOD_BKGND_DARKEN, "Info");
-	
-	TCODConsole::root->blit (left, 0, 0, 14, engine.screenHeight - PANEL_HEIGHT, TCODConsole::root, 0, 0);
-
-	// clear the GUI console
-	con->setDefaultBackground (TCODColor::black);
-	con->clear ();
-
-	// draw the message log
-	y = 1;
-	float colorCoef = 0.4f;
-	for (Message **it = log.begin (); it != log.end (); it++) {
-		Message *message = *it;
-		con->setDefaultForeground (message->col * colorCoef);
-		con->print (MSG_X, y, message->text);
-		y++;
-		if (colorCoef < 1.0f) {
-			colorCoef += 0.3f;
-		}
-	}
-
-	
-
-	
-	con->setDefaultForeground (TCODColor::grey);
-	con->printFrame (0, 0, engine.screenWidth, PANEL_HEIGHT, false, TCOD_BKGND_DARKEN, "Message Log");
-	// blit the GUI console on the root console
-	TCODConsole::blit (con, 0, 0, engine.screenWidth, PANEL_HEIGHT,
-					   TCODConsole::root, 0, engine.screenHeight - PANEL_HEIGHT);
+	renderLeftPanel ();
+	renderRightPanel ();
+	renderMessagePanel ();
 }
 
 void Gui::renderBar (TCODConsole *target, int x, int y, int width, const char *name,
@@ -116,7 +46,7 @@ void Gui::renderBar (TCODConsole *target, int x, int y, int width, const char *n
 	// print text on top of the bar
 	target->setDefaultForeground (TCODColor::white);
 	target->printEx (x + width - 1, y, TCOD_BKGND_NONE, TCOD_RIGHT,
-				  "%g/%g", value, maxValue);
+					 "%g/%g", value, maxValue);
 }
 
 Gui::Message::Message (const char *text, const TCODColor &col) :
@@ -126,7 +56,130 @@ text (_strdup (text)), col (col) {
 Gui::Message::~Message () {
 	free (text);
 }
+void Gui::renderLeftPanel () {
+	// Clear console and set colors
+	left->setDefaultBackground (TCODColor::black);
+	left->setDefaultForeground (TCODColor::white);
+	left->clear ();
 
+	// Draw position fields
+	int x = 1;
+	int y = 2;
+
+	// Name
+	left->printEx (x, y, TCOD_BKGND_NONE, TCOD_LEFT, "%s", engine.player->name);
+	y++;
+
+	// Level
+	PlayerAi *ai = (PlayerAi *)engine.player->ai;
+	char levelText[128];
+	sprintf_s (levelText, "Level %d", ai->xpLevel);
+	left->printEx (x, y, TCOD_BKGND_NONE, TCOD_LEFT, "%s", levelText);
+	y += 2;
+
+	// draw the health bar
+	left->printEx (x, y, TCOD_BKGND_NONE, TCOD_LEFT, "%s", "HP");
+	renderBar (left, x + strlen ("HP"), y, BAR_WIDTH, "HP", engine.player->destructible->hp,
+			   engine.player->destructible->maxHp,
+			   TCODColor::lightRed, TCODColor::darkerRed);
+	y++;
+
+	// draw the XP bar
+	char xpTxt[128];
+	sprintf_s (xpTxt, "XP");
+	left->printEx (x, y, TCOD_BKGND_NONE, TCOD_LEFT, "%s", xpTxt);
+	renderBar (left, x + strlen (xpTxt), y, BAR_WIDTH, xpTxt, engine.player->destructible->xp,
+			   ai->getNextLevelXp (),
+			   TCODColor::lightViolet, TCODColor::darkerViolet);
+	y += 2;
+
+	// Stats
+	// Power
+	char powerTxt[128];
+	sprintf_s (powerTxt, "PWR: %d", engine.player->attacker->power);
+	left->printEx (x, y, TCOD_BKGND_NONE, TCOD_LEFT, "%s", powerTxt);
+	y++;
+
+	// Defense
+	char defTxt[128];
+	sprintf_s (defTxt, "DEF: %d", engine.player->destructible->defense);	
+	left->printEx (x, y, TCOD_BKGND_NONE, TCOD_LEFT, "%s", defTxt);
+	y++;
+
+	// Mouse look target
+	renderMouseLook (1, engine.screenHeight - PANEL_HEIGHT - 2);
+
+	// Draw a frame
+	left->setDefaultForeground (TCODColor::grey);
+	left->printFrame (0, 0, LEFT_PANEL_WIDTH, engine.screenHeight - PANEL_HEIGHT, false, TCOD_BKGND_DARKEN, "Char");
+
+	// Blit the leftPanel
+	TCODConsole::root->blit (left, 0, 0, LEFT_PANEL_WIDTH, engine.screenHeight - PANEL_HEIGHT, TCODConsole::root, 0, 0);
+}
+
+void Gui::renderRightPanel () {
+	// Clear console and set colors
+	right->setDefaultBackground (TCODColor::black);
+	right->setDefaultForeground (TCODColor::white);
+	right->clear ();
+
+	// Draw position fields
+	int x = 1;
+	int y = 2;
+
+	int playerX = engine.player->x;
+	int playerY = engine.player->y;
+	Tile *t = engine.map->getTile (playerX, playerY);
+	char typeText[32];
+	sprintf_s (typeText, "%d", t->type);
+	char tempText[32];
+	sprintf_s (tempText, "%f", t->temperature);
+	char rainText[32];
+	sprintf_s (rainText, "%f", t->weather);
+	char elvText[32];
+	sprintf_s (elvText, "%f", t->variation);
+
+	right->printEx (x, y, TCOD_BKGND_DEFAULT, TCOD_LEFT, "%s", typeText);
+	y++;
+	right->printEx (x, y, TCOD_BKGND_DEFAULT, TCOD_LEFT, "TMP: %s", tempText);
+	y++;
+	right->printEx (x, y, TCOD_BKGND_DEFAULT, TCOD_LEFT, "RAIN:%s", rainText);
+	y++;
+	right->printEx (x, y, TCOD_BKGND_DEFAULT, TCOD_LEFT, "ELV: %s", elvText);
+	y++;
+
+	// Draw a frame
+	right->setDefaultForeground (TCODColor::grey);
+	right->printFrame (0, 0, RIGHT_PANEL_WIDTH, engine.screenHeight - PANEL_HEIGHT, false, TCOD_BKGND_DARKEN, "Info");
+
+	// Blit the rightPanel
+	TCODConsole::root->blit (right, 0, 0, RIGHT_PANEL_WIDTH, engine.screenHeight - PANEL_HEIGHT, TCODConsole::root, engine.screenWidth - RIGHT_PANEL_WIDTH, 0);
+}
+
+void Gui::renderMessagePanel () {
+	// clear the GUI console
+	con->setDefaultBackground (TCODColor::black);
+	con->clear ();
+
+	// draw the message log
+	int y = 1;
+	float colorCoef = 0.4f;
+	for (Message **it = log.begin (); it != log.end (); it++) {
+		Message *message = *it;
+		con->setDefaultForeground (message->col * colorCoef);
+		con->print (MSG_X, y, message->text);
+		y++;
+		if (colorCoef < 1.0f) {
+			colorCoef += 0.3f;
+		}
+	}
+
+	con->setDefaultForeground (TCODColor::grey);
+	con->printFrame (0, 0, engine.screenWidth, PANEL_HEIGHT, false, TCOD_BKGND_DARKEN, "Message Log");
+	// blit the GUI console on the root console
+	TCODConsole::blit (con, 0, 0, engine.screenWidth, PANEL_HEIGHT,
+					   TCODConsole::root, 0, engine.screenHeight - PANEL_HEIGHT);
+}
 void Gui::renderMouseLook (int x, int y) {
 
 	if (!engine.map->isInFov (engine.mouse_mapX, engine.mouse_mapY)) {

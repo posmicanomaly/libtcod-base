@@ -42,7 +42,7 @@ void GameView::render () {
 		sprintf_s (integer_level, "%d", engine.level);
 		strcat_s (title, integer_level);
 	}
-	con->printFrame (14, 0, engine.screenWidth - 14, engine.screenHeight- 16, false, TCOD_BKGND_DARKEN, title);
+	con->printFrame (Gui::LEFT_PANEL_WIDTH, 0, engine.screenWidth - Gui::LEFT_PANEL_WIDTH - Gui::RIGHT_PANEL_WIDTH, engine.screenHeight- 16, false, TCOD_BKGND_DARKEN, title);
 	// blit the GameView console on the root console
 	TCODConsole::blit (con, 0, 0, engine.screenWidth, engine.screenHeight,
 					   TCODConsole::root, 0, 0);

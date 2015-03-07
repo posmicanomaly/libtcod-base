@@ -10,7 +10,7 @@ Engine::Engine (int screenWidth, int screenHeight) : gameStatus (STARTUP),
 player (NULL), map (NULL), fovRadius (WORLD_FOV_RADIUS),
 screenWidth (screenWidth), screenHeight (screenHeight), level (0) {
 	VIEW_HEIGHT = screenHeight - 16;
-	VIEW_WIDTH = screenWidth - 15;
+	VIEW_WIDTH = screenWidth - Gui::LEFT_PANEL_WIDTH - Gui::RIGHT_PANEL_WIDTH;
 	showTemperature = false;
 	showWeather = false;
 	dbglog ("LIBTCOD-BASE\nRoguelike Engine\nJesse Pospisil 2015\n-----\n");
@@ -157,9 +157,8 @@ void Engine::render () {
 	// Can't call this in update because it makes the player jumpy
 	xOffset = engine.player->x - VIEW_WIDTH / 2;
 	yOffset = engine.player->y - VIEW_HEIGHT / 2;
-	// offset for the gui 15 -1
-	// TODO this needs to be refactored
-	xOffset-=15 - 1;
+	// offset for the gui left_width - right_width, - 1 to center player with center of viewport
+	xOffset -= (Gui::LEFT_PANEL_WIDTH + Gui::RIGHT_PANEL_WIDTH) / 2 - 1;
 	yOffset-=0;
 
 	// Drawing the GameView

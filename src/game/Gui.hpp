@@ -36,9 +36,12 @@ public:
 	void load (TCODZip &zip);
 	void save (TCODZip &zip);
 	void clear ();
+	static const int LEFT_PANEL_WIDTH = 14;
+	static const int RIGHT_PANEL_WIDTH = 14;
 protected:
 	TCODConsole *con;
 	TCODConsole *left;
+	TCODConsole *right;
 	struct Message {
 		char *text;
 		TCODColor col;
@@ -50,4 +53,7 @@ protected:
 					float value, float maxValue, const TCODColor &barColor,
 					const TCODColor &backColor);
 	void renderMouseLook (int x, int y);
+	void renderLeftPanel ();
+	void renderRightPanel ();
+	void renderMessagePanel ();
 };
