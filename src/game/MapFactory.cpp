@@ -89,8 +89,24 @@ void MapFactory::makeWorldMap (Map &map) {
 
 	std::cout << map.heightMapMax << std::endl;
 	heightMap.addFbm (noise2d, map.width / 32, map.height / 32, 0, 0, 8, 0.0f, 1.0f);
+	// Failed attempt to taper map edges to have no land on borders
+	//for (int x = 0; x < map.width; x++) {
+	//	for (int y = 0; y < map.height; y++) {
+	//		/*if (x < map.width / 8 || x > map.width - map.width / 8
+	//			||
+	//			y < map.height / 8 || y > map.height - map.height / 8) {
+	//			*/
+	//		float baseMod = .2f;
+	//		float xd = abs (x - map.width / 2);
+	//		float yd = abs (y - map.height / 2);
+	//		if (xd > yd) baseMod -= xd / (map.width / 2);
+	//		else baseMod -= yd / (map.height / 2);
+	//		heightMap.setValue (x, y, heightMap.getValue (x, y) * (baseMod));
+	//	}
+	//}
 	heightMap.normalize (map.heightMapMin, map.heightMapMax);
 	delete noise2d;
+
 
 
 	for (int x = 0; x < map.width; x++) {

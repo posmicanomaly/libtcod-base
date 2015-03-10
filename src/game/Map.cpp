@@ -121,13 +121,14 @@ void Map::init (bool withActors) {
 
 Map::~Map () {
 	std::cout << " ~Map()" << std::endl;
-	// Added delete rng, memory leak
 	delete rng;
-	////////////////////////////////
 	delete[] tiles;
 	delete map;
 }
 
+/**
+Alternates style of certain water tiles to provide a movement effect
+**/
 void Map::shimmer () {
 	for (int x = 0; x < width; x++) {
 		for (int y = 0; y < height; y++) {
