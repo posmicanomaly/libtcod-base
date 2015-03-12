@@ -144,7 +144,7 @@ void Gui::renderRightPanel () {
 	char rainText[32];
 	sprintf_s (rainText, "%f", t->weather);
 	char elvText[32];
-	sprintf_s (elvText, "%f", t->variation);
+	sprintf_s (elvText, "%d", t->variation);
 
 	// Init field to hold how many lines this "well" has
 	int well_coord_lines = 0;

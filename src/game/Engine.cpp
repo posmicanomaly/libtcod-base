@@ -392,7 +392,7 @@ void Engine::changeLevel (signed int direction, Actor *actor) {
 		engine.fovRadius = WORLD_FOV_RADIUS;
 	}
 	if (map->type == Map::Type::TOWN) {
-		engine.fovRadius = 0;
+		engine.fovRadius = 10;
 	} else {
 		engine.fovRadius = 10;
 	}

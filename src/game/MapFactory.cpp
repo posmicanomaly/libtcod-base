@@ -71,13 +71,6 @@ void MapFactory::makeTownMap (Map &map) {
 	//MapFactory::addTrees(map, 200);
 	generateTownBuildings (map);
 	setMapTileProperties (map);
-	for (int x = 0; x < map.width; x++) {
-		for (int y = 0; y < map.height; y++) {
-			if (map.tiles[x + y * map.width].type == Tile::Type::WALL) {
-				map.map->setProperties (x, y, true, false);
-			}
-		}
-	}
 	delete noise2d;
 }
 void MapFactory::makeWorldMap (Map &map) {
@@ -89,21 +82,6 @@ void MapFactory::makeWorldMap (Map &map) {
 
 	std::cout << map.heightMapMax << std::endl;
 	heightMap.addFbm (noise2d, map.width / 32, map.height / 32, 0, 0, 8, 0.0f, 1.0f);
-	// Failed attempt to taper map edges to have no land on borders
-	//for (int x = 0; x < map.width; x++) {
-	//	for (int y = 0; y < map.height; y++) {
-	//		/*if (x < map.width / 8 || x > map.width - map.width / 8
-	//			||
-	//			y < map.height / 8 || y > map.height - map.height / 8) {
-	//			*/
-	//		float baseMod = .2f;
-	//		float xd = abs (x - map.width / 2);
-	//		float yd = abs (y - map.height / 2);
-	//		if (xd > yd) baseMod -= xd / (map.width / 2);
-	//		else baseMod -= yd / (map.height / 2);
-	//		heightMap.setValue (x, y, heightMap.getValue (x, y) * (baseMod));
-	//	}
-	//}
 	heightMap.normalize (map.heightMapMin, map.heightMapMax);
 	delete noise2d;
 
@@ -321,17 +299,10 @@ void MapFactory::addTrees (Map &map, int divisor) {
 }
 
 void MapFactory::addTowns (Map &map) {
-	std::vector<std::string> names;
-	names.push_back ("Town 1");
-	names.push_back ("Town 2");
-	names.push_back ("Town 3");
-	names.push_back ("town 4");
-	names.push_back ("Town 5");
-	names.push_back ("Town 6");
-	names.push_back ("Town 7");
+	int townsToAdd = 15;
 	bool placeTowns = true;
 	if (placeTowns) {
-		for (int i = 0; i < names.size (); i++) {
+		for (int i = 0; i < townsToAdd; i++) {
 			Tile *tile;
 			int x, y;
 			bool valid = false;
@@ -339,16 +310,47 @@ void MapFactory::addTowns (Map &map) {
 				x = map.rng->getInt (1, map.width - 1);
 				y = map.rng->getInt (1, map.height - 1);
 				tile = &map.tiles[x + y * map.width];
-				if (tile->type == Tile::Type::PLAIN || tile->type == Tile::Type::FOREST || tile->type == Tile::Type::JUNGLE)
-					valid = true;
+				switch (tile->type) {
+					case Tile::Type::PLAIN:
+					case Tile::Type::FOREST:
+					case Tile::Type::DESERT:
+					case Tile::Type::SHORE:
+					case Tile::Type::HILL:
+						valid = true;
+				}
 				if (valid) {
 					if (map.hasFeatureAt (x, y, '*'))
 						valid = false;
 				}
 			} while (!valid);
-			std::string name = names[i];
+			std::string name = "The ";
+			if (tile->temperature <= FREEZING_TEMPERATURE) {
+				name += "Frozen ";
+			}
+			switch (tile->type) {
+				case Tile::Type::JUNGLE:
+					name += "Jungle Town of ";
+					break;
+				case Tile::Type::FOREST:
+					name += "Forest Town of ";
+					break;
+				case Tile::Type::DESERT:
+					name += "Desert Town of ";
+					break;
+				case Tile::Type::SHORE:
+					name += "Coastal Town of ";
+					break;
+				case Tile::Type::HILL:
+					name += "Outlook Town of ";
+					break;
+				default:
+					name += "Town of ";
+					break;
+			}
+			name += std::to_string (i);
+			
 
-			Actor *town = new Actor (x, y, 'O', name.c_str (), TCODColor::white);
+			Actor *town = new Actor (x, y, 'O', name.c_str (), TCODColor::red);
 			town->fovOnly = false;
 			town->blocks = false;
 			map.actors.push (town);
@@ -655,10 +657,16 @@ void MapFactory::generateTownBuildings (Map &map) {
 }
 
 bool MapFactory::checkBuildingPlacement (Map &map, int x, int y, int width, int height) {
-	for (int curX = x; curX <= x + width; curX++) {
-		for (int curY = y; curY <= y + height; curY++) {
-			if (map.tiles[curX + curY * map.width].type == Tile::Type::WALL)
-				return false;
+	if (x - 1 < 0 || x + width + 1 >= map.width || y - 1 < 0 || y + height + 1 >= map.height)
+		return false;
+	for (int curX = x - 1; curX <= x + width + 1; curX++) {
+		for (int curY = y - 1; curY <= y + height + 1; curY++) {
+			Tile *t = &map.tiles[curX + curY * map.width];
+			switch (t->type) {
+				case Tile::Type::WALL:
+				case Tile::Type::FLOOR:
+					return false;
+			}
 		}
 	}
 	return true;
@@ -667,10 +675,42 @@ bool MapFactory::checkBuildingPlacement (Map &map, int x, int y, int width, int 
 void MapFactory::placeBuilding (Map &map, int x, int y, int width, int height) {
 	if (!checkBuildingPlacement (map, x, y, width, height))
 		return;
+	bool doorPlaced = false;
 	for (int curX = x; curX <= x + width; curX++) {
 		for (int curY = y; curY <= y + height; curY++) {
-			map.tiles[curX + curY * map.width].type = Tile::Type::WALL;
-			map.map->setProperties (curX, curY, false, false);
+			Tile *t = &map.tiles[curX + curY * map.width];
+			Tile::Type type = Tile::Type::WALL;
+			bool transparent = false;
+			bool walkable = false;
+			// If this is on the edge
+			if (curX == x || curX == x + width || curY == y || curY == y + height) {
+				// If we still need a door, maybe this could be a door
+				// TODO: real door placement, and not in a corner
+				if (!doorPlaced) {
+					int chance = map.rng->getInt (0, 100);
+					if (chance < 10) {
+						type = Tile::Type::FLOOR;
+						transparent = true;
+						walkable = true;
+						doorPlaced = true;
+					}
+				}
+				// Otherwise, just a wall
+				else {
+					type = Tile::Type::WALL;
+					transparent = false;
+					walkable = false;
+				}
+			}
+			// Not on edge, a floor then
+			else {
+				type = Tile::Type::FLOOR;
+				transparent = true;
+				walkable = true;
+			}
+			// Set variables
+			t->type = type;
+			map.map->setProperties (curX, curY, transparent, walkable);
 		}
 	}
 }

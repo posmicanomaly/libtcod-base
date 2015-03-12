@@ -32,7 +32,7 @@ void GameView::render () {
 	player->render (con);
 	// dungeon level
 	con->setDefaultForeground (TCODColor::grey);
-	char title[32];
+	char title[128];
 	if (engine.level == 0) {
 		strcpy_s (title, "World");
 	} else {
