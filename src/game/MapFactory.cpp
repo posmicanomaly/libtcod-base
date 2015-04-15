@@ -30,7 +30,6 @@ void MapFactory::makeDungeonMap (Map &map) {
 			float value = heightMap.getValue (x, y);
 			Tile *tile = &map.tiles[x + y * map.width];
 			tile->variation = value;
-			//std::cout << value << std::endl;
 			if (value > waterLevel + 50) {
 				//tile->type = Tile::Type::FLOOR;
 			} else if (value > waterLevel) {

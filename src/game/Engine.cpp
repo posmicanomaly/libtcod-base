@@ -20,6 +20,11 @@ screenWidth (screenWidth), screenHeight (screenHeight), level (0) {
 	gameView = new GameView ();
 }
 
+/**
+Engine Initialization
+
+Initializes the engine:
+*/
 void Engine::init () {
 	dbglog ("Engine::init()\n");
 	// Reset level here
@@ -77,6 +82,12 @@ void Engine::init () {
 	gameStatus = STARTUP;
 }
 
+/**
+Engine Destructor
+
+Call term()
+delete gui and gameView pointers
+*/
 Engine::~Engine () {
 	std::cout << "Engine::~Engine()" << std::endl;
 	term ();
@@ -84,6 +95,12 @@ Engine::~Engine () {
 	delete gameView;
 }
 
+/**
+Engine Termination
+
+Clear and delete all actors in map
+Clear GUI
+*/
 void Engine::term () {
 	std::cout << "Engine::term()" << std::endl;
 	if (map) {
@@ -93,17 +110,43 @@ void Engine::term () {
 	gui->clear ();
 }
 
-void Engine::update () {
 
+/**
+Engine Update
+
+Computes FOV
+Updates key and mouse event, checks for first layer commands:
+-TCODK_ESCAPE				Menu
+-TCODK_PRINTSCREEN			Screenshot
+-TCODK_F2					Cycle GUI Overlay
+-TCODK_ENTER && ralt		Toggle Fullscreen
+*/
+void Engine::update () {
 	if (gameStatus == STARTUP) map->computeFov ();
 	gameStatus = IDLE;
 	TCODSystem::checkForEvent (TCOD_EVENT_KEY_PRESS | TCOD_EVENT_MOUSE, &lastKey, &mouse);
+
+	/*
+	Check Key Presses
+	*/
+
+	/*
+	Escape Menu
+	*/
 	if (lastKey.vk == TCODK_ESCAPE) {
 		save ();
 		load (true);
-	} else if (lastKey.vk == TCODK_PRINTSCREEN) {
+	}
+	/*
+	Take Screenshot
+	*/
+	else if (lastKey.vk == TCODK_PRINTSCREEN) {
 		TCODSystem::saveScreenshot (NULL);
-	} else if (lastKey.vk == TCODK_F2) {
+	}
+	/*
+	Cycle Graphical Overlays
+	*/
+	else if (lastKey.vk == TCODK_F2) {
 		if (!showTemperature && !showWeather) {
 			showTemperature = true;
 		} else if (showTemperature) {
@@ -113,7 +156,11 @@ void Engine::update () {
 			showTemperature = false;
 			showWeather = false;
 		}
-	} else if (lastKey.vk == TCODK_ENTER && lastKey.ralt == true) {
+	}
+	/*
+	Toggle Fullscreen/Windowed
+	*/
+	else if (lastKey.vk == TCODK_ENTER && lastKey.ralt == true) {
 		if (TCODConsole::root->isFullscreen ()) {
 			TCODConsole::root->setFullscreen (false);
 		} else {
@@ -122,10 +169,6 @@ void Engine::update () {
 	}
 	// Set our important mouse information
 	translateMouseToView ();
-	if (mouse.lbutton_pressed) {
-		std::cout << "click: " << mouse.cx << ", " << mouse.cy << std::endl;
-		std::cout << "to map-> " << mouse_mapX << ", " << mouse_mapY << std::endl;
-	}
 
 	player->update ();
 	if (gameStatus == NEW_TURN) {
@@ -138,19 +181,36 @@ void Engine::update () {
 		}
 	}
 }
+/**
+Translate the mouse coordinates to real coordinates on the map
+
+Skew mouse coordinates based on x and y offset(viewport)
+*/
 void Engine::translateMouseToView () {
-	// Set our important mouse information
 	mouse_mapX = mouse.cx + xOffset;
 	mouse_mapY = mouse.cy + yOffset;
 	mouse_winX = mouse.cx;
 	mouse_winY = mouse.cy;
 }
+
+/**
+Main Render Function
+
+Calls the gameView and GUI render functions, highlights the mouse cursor,
+updates the x and y offsets, and ticks the updateCount to shimmer map water.
+
+*/
 void Engine::render () {
+	/*
+	Update count used only to determine if enough updates have been called to call for the map(water) to "shimmer"
+	*/
 	updateCount++;
 	if (updateCount > 60 * 3) {
 		map->shimmer ();
 		updateCount = 0;
 	}
+	//////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 	TCODConsole::root->clear ();
 
 	// Update offsets for "viewport"
@@ -159,6 +219,7 @@ void Engine::render () {
 	yOffset = engine.player->y - VIEW_HEIGHT / 2;
 	// offset for the gui left_width - right_width, - 1 to center player with center of viewport
 	xOffset -= (Gui::LEFT_PANEL_WIDTH + Gui::RIGHT_PANEL_WIDTH) / 2 - 1;
+
 	yOffset-=0;
 
 	// Drawing the GameView
@@ -170,11 +231,22 @@ void Engine::render () {
 	TCODConsole::root->setCharBackground (mouse_winX, mouse_winY, TCODColor::red);
 }
 
+/**
+Translate coordinates to viewport
+
+Skew provided coordinates based on x and y offsets
+
+@param x - x coordinate
+@param y - y coordinate
+*/
 void Engine::translateToView (int &x, int &y) {
 	x -= xOffset;
 	y -= yOffset;
 }
 
+/*
+Send actor to back of list
+*/
 void Engine::sendToBack (Actor *actor) {
 	map->actors.remove (actor);
 	map->actors.insertBefore (actor, 0);
@@ -255,6 +327,9 @@ void Engine::setFullyExplored () {
 	map->setFullyExplored ();
 }
 
+/*
+TODO: clearMapFiles() needs to work again. Consider a new file name scheme.
+*/
 void Engine::clearMapFiles () {
 	//int maxLevel = 1;
 	//while (mapExists(maxLevel)) {
